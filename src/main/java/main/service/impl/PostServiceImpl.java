@@ -50,7 +50,7 @@ public class PostServiceImpl implements PostService {
         } else
             sort = Sort.by(Sort.Direction.ASC, "time");
 
-        Pageable paging = PageRequest.of(offset, limit, sort);
+        Pageable paging = PageRequest.of( offset / 10, limit, sort);
 
         Page<Post> posts;
         if (query != null) {
@@ -105,8 +105,7 @@ public class PostServiceImpl implements PostService {
             PostResponse postResponse = PostResponse.builder()
                     .id(post.getId())
                     .announce(post.getText().substring(0, Math.min(post.getText().length(), 200)))
-                    //.commentCount(post.getComments().size())
-                    .commentCount(33)
+                    .commentCount(post.getComments().size())
                     .dislikeCount(postVoteRepository.countByPostAndValue(post, (byte) -1))
                     .likeCount(postVoteRepository.countByPostAndValue(post, (byte) 1))
                     .title(post.getTitle())

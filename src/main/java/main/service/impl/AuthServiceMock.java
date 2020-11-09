@@ -1,25 +1,24 @@
 package main.service.impl;
 
+import main.api.response.AuthResponse;
 import main.service.AuthService;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
-@Primary
+
 public class AuthServiceMock  implements AuthService {
     @Override
-    public Map<String, Object> check(String httpSession) {
-        Map<String, Object> response = new HashMap<>();
-        boolean isAuthenticated = false;
-        response.put("result", isAuthenticated);
-        return response;
+    public AuthResponse check(String httpSession) {
+        return new AuthResponse(false);
     }
 
     @Override
-    public Map<String, Object> login(String email, String password, String httpSession) {
-        return null;
+    public AuthResponse login(String email, String password, String httpSession) {
+        return new AuthResponse(false);
+    }
+
+    @Override
+    public AuthResponse logout(String httpSession) {
+        return new AuthResponse(true);
     }
 }
