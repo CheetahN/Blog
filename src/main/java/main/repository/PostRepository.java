@@ -43,7 +43,7 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
      * date format YYYY-MM-DD, e.g. day of year
      * count = posts in a day
      */
-    @Query(value = "SELECT DATE_FORMAT(time, '%Y-%m-%d') AS dat, COUNT(*) FROM posts WHERE YEAR(TIME) = ?1 Group BY dat", nativeQuery = true)
+    @Query(value = "SELECT DATE_FORMAT(time, '%Y-%m-%d') AS dat, COUNT(*) FROM posts WHERE YEAR(TIME) = ?1 AND is_active = 1 AND moderation_status = 'ACCEPTED' AND TIME < CURRENT_TIME() Group BY dat", nativeQuery = true)
     public List<Object[]> countByDays(int year);
 
     /**

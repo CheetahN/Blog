@@ -1,5 +1,7 @@
 package main.service;
 
+import main.api.response.CalendarResponse;
+
 import java.util.Map;
 
 /**
@@ -26,5 +28,5 @@ public interface PostService {
      *
      * @return
      */
-    public Map<String, Object> getCalendar(int year);
+    public CalendarResponse getCalendar(int year);
 }

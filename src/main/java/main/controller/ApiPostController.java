@@ -1,6 +1,7 @@
 package main.controller;
 
 import main.api.request.AllPostsRequest;
+import main.api.response.CalendarResponse;
 import main.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,8 +45,8 @@ public class ApiPostController {
     }
 
     @GetMapping("/calendar")
-    private ResponseEntity<Map<String, Object>> getCalendar(int year) {
-        Map<String, Object> response = postService.getCalendar(year);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    private ResponseEntity<CalendarResponse> getCalendar(int year) {
+        CalendarResponse response = postService.getCalendar(year);
+        return new ResponseEntity<CalendarResponse>(response, HttpStatus.OK);
     }
 }

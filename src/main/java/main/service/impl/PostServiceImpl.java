@@ -1,5 +1,6 @@
 package main.service.impl;
 
+import main.api.response.CalendarResponse;
 import main.api.response.PostResponse;
 import main.model.Post;
 import main.model.enums.ModerationStatus;
@@ -81,18 +82,15 @@ public class PostServiceImpl implements PostService {
         return response;
     }
 
-    public Map<String, Object> getCalendar(int year) {
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("years", postRepository.findYears());
+    public CalendarResponse getCalendar(int year) {
 
         Map<String, Integer> postsCountsMap = new HashMap<>();
         List<Object[]> postsCountsList = postRepository.countByDays(year);
-        postsCountsList.stream().forEach(objects ->
+        postsCountsList.forEach(objects ->
                 postsCountsMap.put((String) objects[0], ((BigInteger) objects[1]).intValue())
         );
-        response.put("posts", postsCountsMap);
-        return response;
+
+        return new CalendarResponse(postRepository.findYears(), postsCountsMap);
     }
 
     /**
