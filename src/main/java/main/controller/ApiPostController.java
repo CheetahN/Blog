@@ -1,15 +1,14 @@
 package main.controller;
 
-import main.api.request.AllPostsRequest;
 import main.api.response.CalendarResponse;
+import main.api.response.PostListReponse;
 import main.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -21,26 +20,42 @@ public class ApiPostController {
     }
 
     @GetMapping("/post")
-    private ResponseEntity<Map<String, Object>> getPosts(AllPostsRequest allPostsRequest) {
-        Map<String, Object> response = postService.getPosts(allPostsRequest.getOffset(), allPostsRequest.getLimit(), allPostsRequest.getMode(), allPostsRequest.getQuery(), null, null);
+    private ResponseEntity<PostListReponse> getPosts(
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(name = "mode", required = false, defaultValue = "recent") String mode) {
+
+        PostListReponse response = postService.getPosts(offset, limit, mode);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/post/search")
-    private ResponseEntity<Map<String, Object>> postsSearch(AllPostsRequest allPostsRequest) {
-        Map<String, Object> response = postService.getPosts(allPostsRequest.getOffset(), allPostsRequest.getLimit(), "recent", allPostsRequest.getQuery(), null, null);
+    private ResponseEntity<PostListReponse> searchPosts(
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(name = "query", required = false) String query) {
+
+        PostListReponse response = postService.searchPosts(offset, limit, query);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/post/byDate")
-    private ResponseEntity<Map<String, Object>> postsByDate(AllPostsRequest allPostsRequest) {
-        Map<String, Object> response = postService.getPosts(allPostsRequest.getOffset(), allPostsRequest.getLimit(), "recent", null, allPostsRequest.getDate(), null);
+    private ResponseEntity<PostListReponse> getPostsByDate(
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(name = "date", required = false) String dateQuery) {
+
+        PostListReponse response = postService.getPostsByDate(offset, limit, dateQuery);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/post/byTag")
-    private ResponseEntity<Map<String, Object>> postsByTag(AllPostsRequest allPostsRequest) {
-        Map<String, Object> response = postService.getPosts(allPostsRequest.getOffset(), allPostsRequest.getLimit(), "recent", null, null, allPostsRequest.getTag());
+    private ResponseEntity<PostListReponse> getPostsByTag(
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(name = "tag", required = false) String tag) {
+
+        PostListReponse response = postService.getPostsByTag(offset, limit, tag);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
