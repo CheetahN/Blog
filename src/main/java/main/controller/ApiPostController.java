@@ -1,14 +1,12 @@
 package main.controller;
 
 import main.api.response.CalendarResponse;
+import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
 import main.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -63,5 +61,11 @@ public class ApiPostController {
     private ResponseEntity<CalendarResponse> getCalendar(int year) {
         CalendarResponse response = postService.getCalendar(year);
         return new ResponseEntity<CalendarResponse>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/post/{id}")
+    private ResponseEntity<PostExpandedResponse> getPost(@PathVariable int id) {
+        PostExpandedResponse response = postService.getPost(id);
+        return new ResponseEntity<PostExpandedResponse>(response, HttpStatus.OK);
     }
 }

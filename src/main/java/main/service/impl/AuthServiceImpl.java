@@ -73,5 +73,4 @@ public class AuthServiceImpl implements AuthService {
                 .settings(user.getIsModerator() == 1)
                 .build();
     }
-
 }

@@ -1,6 +1,7 @@
 package main.service;
 
 import main.api.response.CalendarResponse;
+import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
 
 /**
@@ -43,4 +44,6 @@ public interface PostService {
      * @return
      */
     public CalendarResponse getCalendar(int year);
+
+    public PostExpandedResponse getPost(int id);
 }

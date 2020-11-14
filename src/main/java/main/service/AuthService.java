@@ -3,8 +3,6 @@ package main.service;
 import main.api.response.AuthResponse;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
 @Service
 public interface AuthService {
 

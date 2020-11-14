@@ -1,8 +1,7 @@
 package main.service.impl;
 
-import main.api.response.CalendarResponse;
-import main.api.response.PostListReponse;
-import main.api.response.PostResponse;
+import main.api.response.*;
+import main.model.Comment;
 import main.model.Post;
 import main.repository.PostRepository;
 import main.repository.TagRepository;
@@ -101,13 +100,46 @@ public class PostServiceImpl implements PostService {
                     .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
                     .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
                     .title(post.getTitle())
-                    .timestamp(post.getTime().atZone(ZoneId.of("Asia/Dhaka")).toEpochSecond())
+                    .timestamp(post.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
                     .viewCount(post.getViewCount())
+                    .user(post.getUser().getId(), post.getUser().getName())
                     .build();
-            postResponse.addUser(post.getUser().getId(), post.getUser().getName());
             postResponseList.add(postResponse);
         }
         ));
         return postResponseList;
+    }
+
+    public PostExpandedResponse getPost(int id) {
+        postRepository.updateIncrementViewCount(id);  // increment view count
+        
+        Post post = postRepository.getById(id);
+
+        List<CommentDTO> commentsDTO = new ArrayList<>();
+        post.getComments().forEach(comment -> {
+            commentsDTO.add(
+            CommentDTO.builder()
+                    .id(comment.getId())
+                    .text(comment.getText())
+                    .timestamp(comment.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
+                    .user(comment.getUser().getId(), comment.getUser().getName(), comment.getUser().getPhoto())
+                    .build()
+            );
+        });
+
+
+        return PostExpandedResponse.builder()
+                .active(post.getIsActive() == 1)
+                .id(id)
+                .timestamp(post.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
+                .user(post.getUser().getId(), post.getUser().getName())
+                .title(post.getTitle())
+                .text(post.getText())
+                .viewCount(post.getViewCount())
+                .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
+                .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
+                .tags(tagToPostRepository.findTagsByPost(post))
+                .comments(commentsDTO)
+                .build();
     }
 }
