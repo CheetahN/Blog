@@ -7,7 +7,7 @@ drop table if exists posts;
 drop table if exists tag2post;
 drop table if exists tags;
 drop table if exists users;
-create table captcha_codes (id integer not null, code tinyint not null, secret_code tinyint not null, time datetime(6) not null, primary key (id)) engine=InnoDB;
+create table captcha_codes (id integer not null, code tinytext not null, secret_code tinytext not null, time datetime(6) not null, primary key (id)) engine=InnoDB;
 create table global_settings (id integer not null, code VARCHAR(255) not null, name varchar(255) not null, value VARCHAR(255) not null, primary key (id)) engine=InnoDB;
 create table hibernate_sequence (next_val bigint) engine=InnoDB;
 insert into hibernate_sequence values ( 1 );

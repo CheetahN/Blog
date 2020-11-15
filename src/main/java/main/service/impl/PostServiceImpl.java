@@ -112,7 +112,7 @@ public class PostServiceImpl implements PostService {
 
     public PostExpandedResponse getPost(int id) {
         postRepository.updateIncrementViewCount(id);  // increment view count
-        
+
         Post post = postRepository.getById(id);
 
         List<CommentDTO> commentsDTO = new ArrayList<>();

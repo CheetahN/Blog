@@ -2,7 +2,10 @@ package main.controller;
 
 import main.api.request.LoginRequest;
 import main.api.response.AuthResponse;
+import main.api.response.CaptchaResponse;
 import main.service.AuthService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
@@ -30,5 +33,11 @@ public class ApiAuthController {
     @GetMapping("logout")
     private AuthResponse login(HttpSession session) {
         return authService.logout(session.getId());
+    }
+
+    @GetMapping("captcha")
+    private ResponseEntity<CaptchaResponse> getCaptcha() {
+        CaptchaResponse response = authService.getCaptcha();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
