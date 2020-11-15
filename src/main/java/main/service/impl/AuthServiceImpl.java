@@ -2,8 +2,11 @@ package main.service.impl;
 
 import com.github.cage.Cage;
 import com.github.cage.image.Painter;
+import com.github.cage.token.RandomTokenGenerator;
+import main.api.request.RegistrationRequest;
 import main.api.response.AuthResponse;
 import main.api.response.CaptchaResponse;
+import main.api.response.RegistrationResponse;
 import main.api.response.UserResponse;
 import main.model.CaptchaCode;
 import main.model.User;
@@ -92,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
 
         Painter painter = new Painter(100, 35, null,  Painter.Quality.DEFAULT, null, null);
         Cage cage = new Cage(painter, null, null, null,
-                Cage.DEFAULT_COMPRESS_RATIO, null, null);
+                Cage.DEFAULT_COMPRESS_RATIO, new RandomTokenGenerator(null, 6), null);
         String code = cage.getTokenGenerator().next();
         String captcha = Base64.getEncoder().encodeToString(cage.draw(code));
         String secret = captcha.substring(captcha.length() - 30, captcha.length() - 15);
@@ -105,5 +108,50 @@ public class AuthServiceImpl implements AuthService {
 
 
         return new CaptchaResponse(secret, "data:image/png;base64, " + captcha);
+    }
+
+    @Override
+    public RegistrationResponse register(RegistrationRequest request) {
+        String LATIN = "^\\w*$";
+        String CYRILLIC = "^[а-яА-Я0-9_]{3,}$";
+        boolean result = true;
+        Map<String, String> errors = new HashMap<>();
+        RegistrationResponse response = new RegistrationResponse();
+
+        String name = request.getName();
+        String email = request.getEmail();
+        String captcha = request.getCaptcha();
+        String secretCode = request.getCaptchaSecret();
+
+        if (!(name.matches(LATIN) || name.matches(CYRILLIC))) {
+            result = false;
+            errors.put("name", "Имя указано неверно");
+        }
+
+        if (userRepository.findByEmail(email) != null) {
+            result = false;
+            errors.put("email", "Этот e-mail уже зарегистрирован");
+        }
+
+        CaptchaCode captchaCode = captchaRepository.findBySecretCode(secretCode);
+        if (captchaCode == null || !captchaCode.getCode().equals(captcha)) {
+            result = false;
+            errors.put("captcha", "Код с картинки введён неверно");
+        }
+
+        response.setResult(result);
+
+        if (result) {
+            User user = new User();
+            user.setName(name);
+            user.setEmail(email);
+            user.setPassword(request.getPassword());
+            user.setRegTime(LocalDateTime.now());
+            user.setIsModerator((byte) 0);
+            userRepository.save(user);
+        } else {
+            response.setErrors(errors);
+        }
+        return response;
     }
 }

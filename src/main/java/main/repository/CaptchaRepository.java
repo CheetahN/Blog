@@ -9,4 +9,6 @@ import java.time.LocalDateTime;
 public interface CaptchaRepository extends JpaRepository<CaptchaCode, Integer> {
     @Transactional
     public void deleteByTimeBefore(LocalDateTime time);
+
+    public CaptchaCode findBySecretCode(String secret);
 }

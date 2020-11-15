@@ -1,8 +1,10 @@
 package main.controller;
 
 import main.api.request.LoginRequest;
+import main.api.request.RegistrationRequest;
 import main.api.response.AuthResponse;
 import main.api.response.CaptchaResponse;
+import main.api.response.RegistrationResponse;
 import main.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,12 @@ public class ApiAuthController {
     @GetMapping("captcha")
     private ResponseEntity<CaptchaResponse> getCaptcha() {
         CaptchaResponse response = authService.getCaptcha();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("register")
+    private ResponseEntity<RegistrationResponse> register(@RequestBody RegistrationRequest request) {
+        RegistrationResponse response = authService.register(request);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

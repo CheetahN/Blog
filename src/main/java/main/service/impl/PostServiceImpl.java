@@ -100,7 +100,7 @@ public class PostServiceImpl implements PostService {
                     .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
                     .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
                     .title(post.getTitle())
-                    .timestamp(post.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
+                    .timestamp(post.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
                     .viewCount(post.getViewCount())
                     .user(post.getUser().getId(), post.getUser().getName())
                     .build();
