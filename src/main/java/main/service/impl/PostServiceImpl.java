@@ -1,12 +1,12 @@
 package main.service.impl;
 
 import main.api.response.*;
-import main.model.Comment;
 import main.model.Post;
-import main.repository.PostRepository;
-import main.repository.TagRepository;
-import main.repository.TagToPostRepository;
+import main.model.User;
+import main.model.enums.ModerationStatus;
+import main.repository.*;
 import main.service.PostService;
+import main.service.exceptions.NoUserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,13 +26,17 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final TagToPostRepository tagToPostRepository;
+    private final SessionRepository sessionRepository;
+    private final UserRepository userRepository;
 
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, SessionRepository sessionRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.tagToPostRepository = tagToPostRepository;
+        this.sessionRepository = sessionRepository;
+        this.userRepository = userRepository;
     }
 
     public PostListReponse getPosts(int offset, int limit, String mode) {
@@ -110,10 +115,28 @@ public class PostServiceImpl implements PostService {
         return postResponseList;
     }
 
-    public PostExpandedResponse getPost(int id) {
-        postRepository.updateIncrementViewCount(id);  // increment view count
+    public PostExpandedResponse getPost(int postID, String sessionId) {
+        Integer userID = sessionRepository.getUserId(sessionId);
+        boolean isModerator = false;
+        boolean isAuthor = false;
+        Post post = postRepository.findById(postID);
+        if (post == null)
+            return null;
 
-        Post post = postRepository.getById(id);
+        if (userID != null) {
+            User user = userRepository.findById(userID).orElseThrow(() -> new NoUserException(userID));
+            isModerator = user.getIsModerator() == 1;
+            isAuthor = post.getUser().getId() == userID;
+        }
+
+        if (!(isAuthor || isModerator)) {
+            if (post.getTime().isAfter(LocalDateTime.now()) ||
+                post.getIsActive() == 0 ||
+                !(post.getModerationStatus() == ModerationStatus.ACCEPTED)) {
+                    return null;
+            }
+            postRepository.updateIncrementViewCount(postID);
+        }
 
         List<CommentDTO> commentsDTO = new ArrayList<>();
         post.getComments().forEach(comment -> {
@@ -130,7 +153,7 @@ public class PostServiceImpl implements PostService {
 
         return PostExpandedResponse.builder()
                 .active(post.getIsActive() == 1)
-                .id(id)
+                .id(postID)
                 .timestamp(post.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
                 .user(post.getUser().getId(), post.getUser().getName())
                 .title(post.getTitle())

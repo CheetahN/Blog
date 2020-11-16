@@ -45,5 +45,5 @@ public interface PostService {
      */
     public CalendarResponse getCalendar(int year);
 
-    public PostExpandedResponse getPost(int id);
+    public PostExpandedResponse getPost(int id, String sessionId);
 }

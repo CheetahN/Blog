@@ -13,6 +13,7 @@ import main.model.User;
 import main.model.enums.ModerationStatus;
 import main.repository.CaptchaRepository;
 import main.repository.PostRepository;
+import main.repository.SessionRepository;
 import main.repository.UserRepository;
 import main.service.AuthService;
 import main.service.exceptions.NoUserException;
@@ -29,26 +30,27 @@ import java.util.Map;
 @Service
 @Primary
 public class AuthServiceImpl implements AuthService {
-    private static Map<String, Integer> activeSessions = new HashMap<>();
-    private UserRepository userRepository;
-    private PostRepository postRepository;
-    private CaptchaRepository captchaRepository;
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final CaptchaRepository captchaRepository;
+    private final SessionRepository sessionRepository;
     @Value("${blog.captcha.lifetime}")
     private long captchaLifetime;
 
     @Autowired
-    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository) {
+    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SessionRepository sessionRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.captchaRepository = captchaRepository;
+        this.sessionRepository = sessionRepository;
     }
 
     @Override
     public AuthResponse check(String httpSession) {
         AuthResponse authResponse;
 
-        int id = activeSessions.getOrDefault(httpSession, -1);
-        if ( id < 0 ) {
+        Integer id = sessionRepository.getUserId(httpSession);
+        if ( id == null) {
             authResponse = new AuthResponse(false);
         } else {
             User user = userRepository.findById(id).orElseThrow(() -> new NoUserException(id));
@@ -59,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse logout(String httpSession) {
-        activeSessions.remove(httpSession);
+        sessionRepository.remove(httpSession);
         return new AuthResponse(true);
     }
 
@@ -70,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         if (user == null || !password.equals(user.getPassword())) {
             authResponse = new AuthResponse(false);
         } else {
-            activeSessions.put(sessionId, user.getId());
+            sessionRepository.addSession(sessionId, user.getId());
             authResponse = new AuthResponse(true, convertUserToUserResponse(user));
         }
 

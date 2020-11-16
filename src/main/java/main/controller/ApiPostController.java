@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
+
 @RestController
 @RequestMapping("/api")
 public class ApiPostController {
@@ -64,8 +66,10 @@ public class ApiPostController {
     }
 
     @GetMapping("/post/{id}")
-    private ResponseEntity<PostExpandedResponse> getPost(@PathVariable int id) {
-        PostExpandedResponse response = postService.getPost(id);
-        return new ResponseEntity<PostExpandedResponse>(response, HttpStatus.OK);
+    private ResponseEntity getPost(HttpSession session, @PathVariable int id) {
+        PostExpandedResponse response = postService.getPost(id, session.getId());
+        if (response == null)
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(response);
     }
 }
