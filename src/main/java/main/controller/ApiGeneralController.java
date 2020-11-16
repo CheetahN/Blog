@@ -1,14 +1,16 @@
 package main.controller;
 
+import main.api.request.SettingsRequest;
 import main.api.response.InitResponse;
 import main.api.response.SettingsResponse;
 import main.api.response.TagResponse;
 import main.service.SettingsService;
 import main.service.TagService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api")
@@ -36,5 +38,13 @@ public class ApiGeneralController {
     @GetMapping("/tag")
     private TagResponse getTag(@RequestParam(name = "query", required = false) String query) {
         return tagService.getTag(query);
+    }
+
+    @PutMapping("/settings")
+    private ResponseEntity changeSettings(@RequestBody SettingsRequest settingsRequest, HttpSession session) {
+        if (settingsService.setGlobalSettings(session.getId(), settingsRequest))
+            return ResponseEntity.ok().build();
+        else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }

@@ -16,6 +16,7 @@ public class GlobalSetting {
     @Column(nullable = false)
     private int id;
 
+    @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(255)", nullable = false)
     private GlobalSettingCode code;
 
