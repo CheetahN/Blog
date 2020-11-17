@@ -26,7 +26,7 @@ public class ApiPostController {
             @RequestParam(name = "mode", required = false, defaultValue = "recent") String mode) {
 
         PostListReponse response = postService.getPosts(offset, limit, mode);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/post/search")
@@ -36,7 +36,7 @@ public class ApiPostController {
             @RequestParam(name = "query", required = false) String query) {
 
         PostListReponse response = postService.searchPosts(offset, limit, query);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/post/byDate")
@@ -46,7 +46,7 @@ public class ApiPostController {
             @RequestParam(name = "date", required = false) String dateQuery) {
 
         PostListReponse response = postService.getPostsByDate(offset, limit, dateQuery);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/post/byTag")
@@ -56,20 +56,33 @@ public class ApiPostController {
             @RequestParam(name = "tag", required = false) String tag) {
 
         PostListReponse response = postService.getPostsByTag(offset, limit, tag);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/calendar")
     private ResponseEntity<CalendarResponse> getCalendar(int year) {
         CalendarResponse response = postService.getCalendar(year);
-        return new ResponseEntity<CalendarResponse>(response, HttpStatus.OK);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/post/{id}")
-    private ResponseEntity getPost(HttpSession session, @PathVariable int id) {
+    private ResponseEntity<PostExpandedResponse> getPost(HttpSession session, @PathVariable int id) {
         PostExpandedResponse response = postService.getPost(id, session.getId());
         if (response == null)
             return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("post/moderation")
+    private ResponseEntity<PostListReponse> getPostsForModeration(
+            HttpSession session,
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(name = "status", required = false) String status) {
+
+        PostListReponse response = postService.getPostsForModeration(offset, limit, status, session.getId());
+        if (response == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(response);
     }
 }

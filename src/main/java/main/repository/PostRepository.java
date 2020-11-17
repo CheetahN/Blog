@@ -1,6 +1,7 @@
 package main.repository;
 
 import main.model.Post;
+import main.model.User;
 import main.model.enums.ModerationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,4 +84,10 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     @Modifying
     @Query(value = "update Post p set p.viewCount = p.viewCount + 1 WHERE p.id = :id")
     public void updateIncrementViewCount(int id);
+
+    @Query(value = "select p from Post p where p.moderationStatus = 'NEW' and p.isActive = 1")
+    public Page<Post> findByIsActiveAndModerationStatusNew(Pageable pageable);
+
+    public Page<Post> findByIsActiveAndModerationStatusAndModerator(byte isActive, ModerationStatus moderationStatus, User moderator, Pageable pageable);
+
 }

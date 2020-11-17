@@ -20,7 +20,7 @@ insert into hibernate_sequence values ( 1 );
 insert into hibernate_sequence values ( 1 );
 create table post_comments (id integer not null, text text not null, time datetime(6) not null, parent_id integer, post_id integer not null, user_id integer not null, primary key (id)) engine=InnoDB;
 create table post_votes (id integer not null, time datetime(6) not null, value tinyint not null, post_id integer not null, user_id integer not null, primary key (id)) engine=InnoDB;
-create table posts (id integer not null, is_active tinyint not null, moderation_status enum('NEW', 'ACCEPTED', 'DECLINED') default 'NEW' not null, text text not null, time datetime(6) not null, title varchar(255) not null, view_count integer not null, moderator_id integer not null, user_id integer not null, primary key (id)) engine=InnoDB;
+create table posts (id integer not null, is_active tinyint not null, moderation_status enum('NEW', 'ACCEPTED', 'DECLINED') default 'NEW' not null, text text not null, time datetime(6) not null, title varchar(255) not null, view_count integer not null, moderator_id integer, user_id integer not null, primary key (id)) engine=InnoDB;
 create table tag2post (id integer not null, post_id integer not null, tag_id integer not null, primary key (id)) engine=InnoDB;
 create table tags (id integer not null, name varchar(255) not null, primary key (id)) engine=InnoDB;
 create table users (id integer not null, code varchar(255), email varchar(255) not null, is_moderator tinyint not null, name varchar(255) not null, password varchar(255) not null, photo text, reg_time datetime(6) not null, primary key (id)) engine=InnoDB;

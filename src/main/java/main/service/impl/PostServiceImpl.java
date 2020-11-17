@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -164,5 +165,26 @@ public class PostServiceImpl implements PostService {
                 .tags(tagToPostRepository.findTagsByPost(post))
                 .comments(commentsDTO)
                 .build();
+    }
+
+    @Override
+    public PostListReponse getPostsForModeration(int offset, int limit, String status, String sessionId) {
+        Integer userId = sessionRepository.getUserId(sessionId);
+        if (userId == null)
+            return null;
+        User currentUser = userRepository.findById(userId).orElse(new User());
+        if (userRepository.findById(userId).orElse(new User()).getIsModerator() == 0)
+            return null;
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "time");
+        Pageable paging = PageRequest.of( offset / 10, limit, sort);
+
+        Page<Post> posts;
+        if ("new".equals(status)) {
+            posts = postRepository.findByIsActiveAndModerationStatusNew(paging);
+        } else
+            posts = postRepository.findByIsActiveAndModerationStatusAndModerator((byte) 1, Enum.valueOf(ModerationStatus.class, status.toUpperCase()), currentUser, paging);
+
+        return new PostListReponse(posts.getTotalElements(), getList(posts));
     }
 }

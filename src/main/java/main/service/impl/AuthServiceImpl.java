@@ -10,11 +10,10 @@ import main.api.response.RegistrationResponse;
 import main.api.response.UserResponse;
 import main.model.CaptchaCode;
 import main.model.User;
+import main.model.enums.GlobalSettingCode;
+import main.model.enums.GlobalSettingValue;
 import main.model.enums.ModerationStatus;
-import main.repository.CaptchaRepository;
-import main.repository.PostRepository;
-import main.repository.SessionRepository;
-import main.repository.UserRepository;
+import main.repository.*;
 import main.service.AuthService;
 import main.service.exceptions.NoUserException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,15 +33,17 @@ public class AuthServiceImpl implements AuthService {
     private final PostRepository postRepository;
     private final CaptchaRepository captchaRepository;
     private final SessionRepository sessionRepository;
+    private final SettingsRepository settingsRepository;
     @Value("${blog.captcha.lifetime}")
     private long captchaLifetime;
 
     @Autowired
-    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SessionRepository sessionRepository) {
+    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SessionRepository sessionRepository, SettingsServiceImpl settingsService, SettingsRepository settingsRepository) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.captchaRepository = captchaRepository;
         this.sessionRepository = sessionRepository;
+        this.settingsRepository = settingsRepository;
     }
 
     @Override
@@ -114,6 +115,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public RegistrationResponse register(RegistrationRequest request) {
+        if (settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE).getValue() == GlobalSettingValue.NO)
+            return null;
         String LATIN = "^\\w*$";
         String CYRILLIC = "^[а-яА-Я0-9_]{3,}$";
         boolean result = true;
