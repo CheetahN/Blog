@@ -7,6 +7,7 @@ import main.model.enums.ModerationStatus;
 import main.repository.*;
 import main.service.PostService;
 import main.service.exceptions.NoUserException;
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -102,10 +103,12 @@ public class PostServiceImpl implements PostService {
      */
     private List<PostResponse> getList(Page<Post> page){
         List<PostResponse> postResponseList = new ArrayList<>();
+
         page.forEach((post -> {
+            String plainText = Jsoup.parse(post.getText()).text();
             PostResponse postResponse = PostResponse.builder()
                     .id(post.getId())
-                    .announce(post.getText().substring(0, Math.min(post.getText().length(), 200)))
+                    .announce(plainText.substring(0, Math.min(plainText.length(), 200)))
                     .commentCount(post.getComments().size())
                     .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
                     .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
