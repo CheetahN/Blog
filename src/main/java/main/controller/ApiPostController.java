@@ -67,7 +67,7 @@ public class ApiPostController {
 
     @GetMapping("/post/{id}")
     private ResponseEntity<PostExpandedResponse> getPost(HttpSession session, @PathVariable int id) {
-        PostExpandedResponse response = postService.getPost(id, session.getId());
+        PostExpandedResponse response = postService.getPostById(id, session.getId());
         if (response == null)
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(response);
@@ -81,6 +81,19 @@ public class ApiPostController {
             @RequestParam(name = "status", required = false) String status) {
 
         PostListReponse response = postService.getPostsForModeration(offset, limit, status, session.getId());
+        if (response == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("post/my")
+    private ResponseEntity<PostListReponse> getPostsMy(
+            HttpSession session,
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
+            @RequestParam(name = "status", required = false) String status) {
+
+        PostListReponse response = postService.getPostsMy(offset, limit, status, session.getId());
         if (response == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(response);

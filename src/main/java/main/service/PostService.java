@@ -5,7 +5,7 @@ import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
 
 /**
- * Service for working with posts
+ * Service for posts
  */
 
 public interface PostService {
@@ -45,7 +45,9 @@ public interface PostService {
      */
     public CalendarResponse getCalendar(int year);
 
-    public PostExpandedResponse getPost(int id, String sessionId);
+    public PostExpandedResponse getPostById(int id, String sessionId);
 
     public PostListReponse getPostsForModeration(int offset, int limit, String status, String sessionId);
+
+    public PostListReponse getPostsMy(int offset, int limit, String status, String sessionId);
 }

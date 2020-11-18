@@ -40,6 +40,7 @@ public class PostServiceImpl implements PostService {
         this.userRepository = userRepository;
     }
 
+    @Override
     public PostListReponse getPosts(int offset, int limit, String mode) {
         Pageable paging = PageRequest.of( offset / 10, limit);
         Page<Post> posts;
@@ -60,6 +61,7 @@ public class PostServiceImpl implements PostService {
     }
 
     //  search in text
+    @Override
     public PostListReponse searchPosts(int offset, int limit, String query) {
         Pageable paging = PageRequest.of( offset / 10, limit);
         Page<Post> posts = postRepository.findByTextContaining(query, paging);
@@ -67,6 +69,7 @@ public class PostServiceImpl implements PostService {
     }
 
     //  search by date
+    @Override
     public PostListReponse getPostsByDate(int offset, int limit, String dateQuery) {
         Pageable paging = PageRequest.of( offset / 10, limit);
         Page<Post> posts = postRepository.findByDate(dateQuery, paging);
@@ -74,6 +77,7 @@ public class PostServiceImpl implements PostService {
     }
 
     //  search by tag
+    @Override
     public PostListReponse getPostsByTag(int offset, int limit, String tag) {
         List<Integer> tagToPostList = tagToPostRepository.findPostIdByTag(tagRepository.findByName(tag));
         Pageable paging = PageRequest.of( offset / 10, limit);
@@ -81,7 +85,7 @@ public class PostServiceImpl implements PostService {
         return new PostListReponse(posts.getTotalElements(), getList(posts));
     }
 
-
+    @Override
     public CalendarResponse getCalendar(int year) {
         Map<String, Integer> postsCountsMap = new HashMap<>();
         List<Object[]> postsCountsList = postRepository.countByDays(year);
@@ -116,7 +120,8 @@ public class PostServiceImpl implements PostService {
         return postResponseList;
     }
 
-    public PostExpandedResponse getPost(int postID, String sessionId) {
+    @Override
+    public PostExpandedResponse getPostById(int postID, String sessionId) {
         Integer userID = sessionRepository.getUserId(sessionId);
         boolean isModerator = false;
         boolean isAuthor = false;
@@ -173,7 +178,7 @@ public class PostServiceImpl implements PostService {
         if (userId == null)
             return null;
         User currentUser = userRepository.findById(userId).orElse(new User());
-        if (userRepository.findById(userId).orElse(new User()).getIsModerator() == 0)
+        if (currentUser.getIsModerator() == 0)
             return null;
 
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
@@ -185,6 +190,31 @@ public class PostServiceImpl implements PostService {
         } else
             posts = postRepository.findByIsActiveAndModerationStatusAndModerator((byte) 1, Enum.valueOf(ModerationStatus.class, status.toUpperCase()), currentUser, paging);
 
+        return new PostListReponse(posts.getTotalElements(), getList(posts));
+    }
+
+    @Override
+    public PostListReponse getPostsMy(int offset, int limit, String status, String sessionId) {
+        Integer userId = sessionRepository.getUserId(sessionId);
+        if (userId == null)
+            return null;
+        User currentUser = userRepository.findById(userId).orElse(new User());
+        Sort sort = Sort.by(Sort.Direction.DESC, "time");
+        Pageable paging = PageRequest.of( offset / 10, limit, sort);
+
+        Page<Post> posts;
+        if ("inactive".equals(status)) {
+            posts = postRepository.findByIsActiveAndUser((byte) 0, currentUser,paging);
+        } else {
+            ModerationStatus moderationStatus;
+            if ("pending".equals(status))
+                moderationStatus = ModerationStatus.NEW;
+            else if ("declined".equals(status))
+                moderationStatus = ModerationStatus.DECLINED;
+            else
+                moderationStatus = ModerationStatus.ACCEPTED;
+            posts = postRepository.findByIsActiveAndModerationStatusAndUser((byte) 1, moderationStatus, currentUser, paging);
+        }
         return new PostListReponse(posts.getTotalElements(), getList(posts));
     }
 }

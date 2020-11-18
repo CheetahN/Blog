@@ -90,4 +90,7 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
 
     public Page<Post> findByIsActiveAndModerationStatusAndModerator(byte isActive, ModerationStatus moderationStatus, User moderator, Pageable pageable);
 
+    public Page<Post> findByIsActiveAndUser(byte isActive, User user, Pageable paging);
+
+    public Page<Post> findByIsActiveAndModerationStatusAndUser(byte isActive, ModerationStatus moderationStatus, User user, Pageable paging);
 }
