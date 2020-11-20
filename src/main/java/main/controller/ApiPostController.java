@@ -1,9 +1,13 @@
 package main.controller;
 
+import main.api.request.ModerationRequest;
+import main.api.request.VoteRequest;
 import main.api.response.CalendarResponse;
 import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
+import main.api.response.ResultResponse;
 import main.service.PostService;
+import main.service.VoteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +18,11 @@ import javax.servlet.http.HttpSession;
 @RequestMapping("/api")
 public class ApiPostController {
     private final PostService postService;
+    private final VoteService voteService;
 
-    public ApiPostController(PostService postService) {
+    public ApiPostController(PostService postService, VoteService voteService) {
         this.postService = postService;
+        this.voteService = voteService;
     }
 
     @GetMapping("/post")
@@ -86,7 +92,7 @@ public class ApiPostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("post/my")
+    @GetMapping("/post/my")
     private ResponseEntity<PostListReponse> getPostsMy(
             HttpSession session,
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
@@ -96,6 +102,27 @@ public class ApiPostController {
         PostListReponse response = postService.getPostsMy(offset, limit, status, session.getId());
         if (response == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/moderation")
+    private ResponseEntity<ResultResponse> moderate(HttpSession session, @RequestBody ModerationRequest moderationRequest) {
+        ResultResponse response = new ResultResponse(
+                postService.moderate(session.getId(), moderationRequest.getPostId(), moderationRequest.getDecision()));
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/post/like")
+    private ResponseEntity<ResultResponse> like(HttpSession session, @RequestBody VoteRequest voteRequest) {
+        ResultResponse response = new ResultResponse(
+            voteService.like(session.getId(), voteRequest.getPostId()));
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/post/dislike")
+    private ResponseEntity<ResultResponse> dislike(HttpSession session, @RequestBody VoteRequest voteRequest) {
+        ResultResponse response = new ResultResponse(
+                voteService.dislike(session.getId(), voteRequest.getPostId()));
         return ResponseEntity.ok(response);
     }
 }

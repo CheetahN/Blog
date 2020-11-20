@@ -220,4 +220,33 @@ public class PostServiceImpl implements PostService {
         }
         return new PostListReponse(posts.getTotalElements(), getList(posts));
     }
+
+    @Override
+    public boolean moderate(String sessionId, int postId, String decision) {
+        Integer userId = sessionRepository.getUserId(sessionId);
+        if (userId == null)
+            return false;
+        User currentUser = userRepository.findById(userId).orElse(new User());
+        if (currentUser.getIsModerator() == 0)
+            return false;
+        Post post = postRepository.findById(postId);
+
+        ModerationStatus status;
+        if ("accept".equals(decision)) {
+            status = ModerationStatus.ACCEPTED;
+        } else if ("decline".equals(decision)) {
+            status = ModerationStatus.DECLINED;
+        } else {
+            return false;
+        }
+        post.setModerationStatus(status);
+        post.setModerator(currentUser);
+        try {
+            postRepository.saveAndFlush(post);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
 }

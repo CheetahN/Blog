@@ -3,6 +3,8 @@ package main.service;
 import main.api.response.CalendarResponse;
 import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
+import main.api.response.ResultResponse;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Service for posts
@@ -50,4 +52,6 @@ public interface PostService {
     public PostListReponse getPostsForModeration(int offset, int limit, String status, String sessionId);
 
     public PostListReponse getPostsMy(int offset, int limit, String status, String sessionId);
+
+    public boolean moderate(String sessionId, int postId, String decision);
 }
