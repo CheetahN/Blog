@@ -6,7 +6,8 @@ import main.model.User;
 import main.model.enums.ModerationStatus;
 import main.repository.*;
 import main.service.PostService;
-import main.service.exceptions.NoUserException;
+import main.service.exceptions.PostNotFoundException;
+import main.service.exceptions.UserNotFoundException;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -55,7 +56,7 @@ public class PostServiceImpl implements PostService {
             posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByComments(paging);
 
         } else {
-            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(paging);
+            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes((byte) 1, paging);
         }
 
         return new PostListReponse(posts.getTotalElements(), getList(posts));
@@ -124,18 +125,16 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostExpandedResponse getPostById(int postID, String sessionId) {
-        Integer userID = sessionRepository.getUserId(sessionId);
+    public PostExpandedResponse getPostById(int postId, String sessionId) {
+        Integer userId = sessionRepository.getUserId(sessionId);
         boolean isModerator = false;
         boolean isAuthor = false;
-        Post post = postRepository.findById(postID);
-        if (post == null)
-            return null;
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
 
-        if (userID != null) {
-            User user = userRepository.findById(userID).orElseThrow(() -> new NoUserException(userID));
+        if (userId != null) {
+            User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
             isModerator = user.getIsModerator() == 1;
-            isAuthor = post.getUser().getId() == userID;
+            isAuthor = post.getUser().getId() == userId;
         }
 
         if (!(isAuthor || isModerator)) {
@@ -144,7 +143,7 @@ public class PostServiceImpl implements PostService {
                 !(post.getModerationStatus() == ModerationStatus.ACCEPTED)) {
                     return null;
             }
-            postRepository.updateIncrementViewCount(postID);
+            postRepository.updateIncrementViewCount(postId);
         }
 
         List<CommentDTO> commentsDTO = new ArrayList<>();
@@ -162,7 +161,7 @@ public class PostServiceImpl implements PostService {
 
         return PostExpandedResponse.builder()
                 .active(post.getIsActive() == 1)
-                .id(postID)
+                .id(postId)
                 .timestamp(post.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
                 .user(post.getUser().getId(), post.getUser().getName())
                 .title(post.getTitle())
@@ -229,7 +228,7 @@ public class PostServiceImpl implements PostService {
         User currentUser = userRepository.findById(userId).orElse(new User());
         if (currentUser.getIsModerator() == 0)
             return false;
-        Post post = postRepository.findById(postId);
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
 
         ModerationStatus status;
         if ("accept".equals(decision)) {

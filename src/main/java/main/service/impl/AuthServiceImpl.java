@@ -15,7 +15,7 @@ import main.model.enums.GlobalSettingValue;
 import main.model.enums.ModerationStatus;
 import main.repository.*;
 import main.service.AuthService;
-import main.service.exceptions.NoUserException;
+import main.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -36,6 +36,13 @@ public class AuthServiceImpl implements AuthService {
     private final SettingsRepository settingsRepository;
     @Value("${blog.captcha.lifetime}")
     private long captchaLifetime;
+    @Value("${blog.captcha.captcha.height}")
+    private int captchaHeight;
+    @Value("${blog.captcha.captcha.width}")
+    private int captchaWidth;
+    @Value("${blog.captcha.captcha.length}")
+    private int captchaLength;
+
 
     @Autowired
     public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SessionRepository sessionRepository, SettingsServiceImpl settingsService, SettingsRepository settingsRepository) {
@@ -54,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
         if ( id == null) {
             authResponse = new AuthResponse(false);
         } else {
-            User user = userRepository.findById(id).orElseThrow(() -> new NoUserException(id));
+            User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
             authResponse = new AuthResponse(true, convertUserToUserResponse(user));
         }
         return authResponse;
@@ -96,9 +103,9 @@ public class AuthServiceImpl implements AuthService {
     public CaptchaResponse getCaptcha() {
         captchaRepository.deleteByTimeBefore(LocalDateTime.now().minusMinutes(captchaLifetime));
 
-        Painter painter = new Painter(100, 35, null,  Painter.Quality.DEFAULT, null, null);
+        Painter painter = new Painter(captchaWidth, captchaHeight, null,  Painter.Quality.DEFAULT, null, null);
         Cage cage = new Cage(painter, null, null, null,
-                Cage.DEFAULT_COMPRESS_RATIO, new RandomTokenGenerator(null, 6), null);
+                Cage.DEFAULT_COMPRESS_RATIO, new RandomTokenGenerator(null, captchaLength), null);
         String code = cage.getTokenGenerator().next();
         String captcha = Base64.getEncoder().encodeToString(cage.draw(code));
         String secret = captcha.substring(captcha.length() - 30, captcha.length() - 15);
@@ -123,23 +130,18 @@ public class AuthServiceImpl implements AuthService {
         Map<String, String> errors = new HashMap<>();
         RegistrationResponse response = new RegistrationResponse();
 
-        String name = request.getName();
-        String email = request.getEmail();
-        String captcha = request.getCaptcha();
-        String secretCode = request.getCaptchaSecret();
-
-        if (!(name.matches(LATIN) || name.matches(CYRILLIC))) {
+        if (!(request.getName().matches(LATIN) || request.getName().matches(CYRILLIC))) {
             result = false;
             errors.put("name", "Имя указано неверно");
         }
 
-        if (userRepository.findByEmail(email) != null) {
+        if (userRepository.findByEmail(request.getEmail()) != null) {
             result = false;
             errors.put("email", "Этот e-mail уже зарегистрирован");
         }
 
-        CaptchaCode captchaCode = captchaRepository.findBySecretCode(secretCode);
-        if (captchaCode == null || !captchaCode.getCode().equals(captcha)) {
+        CaptchaCode captchaCode = captchaRepository.findBySecretCode(request.getCaptchaSecret());
+        if (captchaCode == null || !captchaCode.getCode().equals(request.getCaptcha())) {
             result = false;
             errors.put("captcha", "Код с картинки введён неверно");
         }
@@ -148,8 +150,8 @@ public class AuthServiceImpl implements AuthService {
 
         if (result) {
             User user = new User();
-            user.setName(name);
-            user.setEmail(email);
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
             user.setPassword(request.getPassword());
             user.setRegTime(LocalDateTime.now());
             user.setIsModerator((byte) 0);

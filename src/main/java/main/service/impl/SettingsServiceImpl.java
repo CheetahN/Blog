@@ -10,7 +10,7 @@ import main.repository.SessionRepository;
 import main.repository.SettingsRepository;
 import main.repository.UserRepository;
 import main.service.SettingsService;
-import main.service.exceptions.NoUserException;
+import main.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,7 @@ public class SettingsServiceImpl implements SettingsService {
         Integer userId = sessionRepository.getUserId(sessionID);
         if (userId == null)
             return false;
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoUserException(userId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         if (user.getIsModerator() == 0)
             return false;
         GlobalSetting globalSetting = settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE);

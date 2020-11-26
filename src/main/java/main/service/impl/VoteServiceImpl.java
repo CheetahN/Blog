@@ -8,7 +8,8 @@ import main.repository.SessionRepository;
 import main.repository.UserRepository;
 import main.repository.VoteRepository;
 import main.service.VoteService;
-import main.service.exceptions.NoUserException;
+import main.service.exceptions.PostNotFoundException;
+import main.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +35,8 @@ public class VoteServiceImpl implements VoteService {
         Integer userId = sessionRepository.getUserId(sessionId);
         if (userId == null)
             return false;
-        Post post = postRepository.findById(postId);
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoUserException(userId));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Vote vote = voteRepository.findByPostAndUser(post, user);
         if (vote == null) {
             vote = new Vote();
@@ -63,8 +64,8 @@ public class VoteServiceImpl implements VoteService {
         Integer userId = sessionRepository.getUserId(sessionId);
         if (userId == null)
             return false;
-        Post post = postRepository.findById(postId);
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoUserException(userId));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Vote vote = voteRepository.findByPostAndUser(post, user);
         if (vote == null) {
             vote = new Vote();

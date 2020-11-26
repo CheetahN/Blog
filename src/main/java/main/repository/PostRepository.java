@@ -16,8 +16,6 @@ import java.util.List;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer>{
 
-    public Post findById(int id);
-
     // sort by comments count
     @Query(value = "select p from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1 order by size(p.comments) desc")
     public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByComments(Pageable pageable);
@@ -30,10 +28,11 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     @Query(value = "select p from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1 order by p.time asc")
     public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeAsc(Pageable pageable);
 
-    // sort by likes desc. this should be fixed!
-    @Query(value = "SELECT COUNT(*), posts.* from post_votes join posts on posts.id = post_votes.post_id WHERE post_votes.VALUE = 1 GROUP BY post_id ORDER BY COUNT(*) desc",
-            nativeQuery = true )
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(Pageable paging);
+    // sort by likes desc
+    @Query(value = "SELECT * from posts p where p.time < CURRENT_TIME() and p.moderation_status = 'ACCEPTED' and p.is_active = 1 " +
+            "ORDER BY (SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = :vote) DESC",
+            nativeQuery = true)
+    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(byte vote, Pageable paging);
 
 
 
