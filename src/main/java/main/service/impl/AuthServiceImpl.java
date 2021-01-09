@@ -19,6 +19,11 @@ import main.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final CaptchaRepository captchaRepository;
     private final SessionRepository sessionRepository;
     private final SettingsRepository settingsRepository;
+    private final AuthenticationManager authenticationManager;
     @Value("${blog.captcha.lifetime}")
     private long captchaLifetime;
     @Value("${blog.captcha.captcha.height}")
@@ -45,26 +51,19 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Autowired
-    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SessionRepository sessionRepository, SettingsServiceImpl settingsService, SettingsRepository settingsRepository) {
+    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SessionRepository sessionRepository, SettingsServiceImpl settingsService, SettingsRepository settingsRepository, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.captchaRepository = captchaRepository;
         this.sessionRepository = sessionRepository;
         this.settingsRepository = settingsRepository;
+        this.authenticationManager = authenticationManager;
     }
 
     @Override
-    public AuthResponse check(String httpSession) {
-        AuthResponse authResponse;
-
-        Integer id = sessionRepository.getUserId(httpSession);
-        if ( id == null) {
-            authResponse = new AuthResponse(false);
-        } else {
-            User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-            authResponse = new AuthResponse(true, convertUserToUserResponse(user));
-        }
-        return authResponse;
+    public UserResponse check(String email) {
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email));
+        return convertUserToUserResponse(currentUser);
     }
 
     @Override
@@ -74,20 +73,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse login(String email, String password, String sessionId) {
-        AuthResponse authResponse;
-        User user = userRepository.findByEmail(email);
-        if (user == null || !password.equals(user.getPassword())) {
-            authResponse = new AuthResponse(false);
-        } else {
-            sessionRepository.addSession(sessionId, user.getId());
-            authResponse = new AuthResponse(true, convertUserToUserResponse(user));
-        }
-
+    public AuthResponse login(String email, String password) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        org.springframework.security.core.userdetails.User user =  (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        User currentUser = userRepository.findByEmail(user.getUsername()).orElseThrow(() -> new UsernameNotFoundException(user.getUsername()));
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setResult(true);
+        authResponse.setUser(convertUserToUserResponse(currentUser));
         return authResponse;
     }
 
-    private UserResponse convertUserToUserResponse(User user) {
+
+    public UserResponse convertUserToUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())

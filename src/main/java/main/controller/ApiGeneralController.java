@@ -8,6 +8,7 @@ import main.service.SettingsService;
 import main.service.TagService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
@@ -26,22 +27,23 @@ public class ApiGeneralController {
         this.tagService = tagService;
     }
     @GetMapping("/init")
-    private InitResponse init() {
+    public InitResponse init() {
         return initResponse;
     }
 
     @GetMapping("/settings")
-    private SettingsResponse settings() {
+    public SettingsResponse settings() {
         return settingsService.getGlobalSettings();
     }
 
     @GetMapping("/tag")
-    private TagResponse getTag(@RequestParam(name = "query", required = false) String query) {
+    public TagResponse getTag(@RequestParam(name = "query", required = false) String query) {
         return tagService.getTag(query);
     }
 
     @PutMapping("/settings")
-    private ResponseEntity changeSettings(@RequestBody SettingsRequest settingsRequest, HttpSession session) {
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity changeSettings(@RequestBody SettingsRequest settingsRequest, HttpSession session) {
         if (settingsService.setGlobalSettings(session.getId(), settingsRequest))
             return ResponseEntity.ok().build();
         else

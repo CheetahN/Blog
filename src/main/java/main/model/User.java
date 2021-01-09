@@ -3,6 +3,7 @@ package main.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import main.model.enums.Role;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -44,6 +45,10 @@ public class User {
         this.regTime = regTime;
         this.name = name;
         this.email = email;
-        this.password = password;
+        this.password = pass
+    }
+
+    public Role getRole() {
+        return isModerator == 1 ? Role.MODERATOR : Role.USER;
     }
 }

@@ -44,7 +44,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostListReponse getPosts(int offset, int limit, String mode) {
-        Pageable paging = PageRequest.of( offset / 10, limit);
+        Pageable paging = PageRequest.of( offset / limit, limit);
         Page<Post> posts;
         if ("recent".equals(mode)) {
             posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeDesc(paging);
@@ -100,7 +100,7 @@ public class PostServiceImpl implements PostService {
 
     /**
      * Helper
-     * Converting Page<Posts> to List<PostResponse>
+     * Converting Page<Post> to List<PostResponse>
      */
     private List<PostResponse> getList(Page<Post> page){
         List<PostResponse> postResponseList = new ArrayList<>();
@@ -184,7 +184,7 @@ public class PostServiceImpl implements PostService {
             return null;
 
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
-        Pageable paging = PageRequest.of( offset / 10, limit, sort);
+        Pageable paging = PageRequest.of( offset / limit, limit, sort);
 
         Page<Post> posts;
         if ("new".equals(status)) {
@@ -202,7 +202,7 @@ public class PostServiceImpl implements PostService {
             return null;
         User currentUser = userRepository.findById(userId).orElse(new User());
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
-        Pageable paging = PageRequest.of( offset / 10, limit, sort);
+        Pageable paging = PageRequest.of( offset / limit, limit, sort);
 
         Page<Post> posts;
         if ("inactive".equals(status)) {
