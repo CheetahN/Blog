@@ -45,7 +45,7 @@ public class User {
         this.regTime = regTime;
         this.name = name;
         this.email = email;
-        this.password = pass
+        this.password = password;
     }
 
     public Role getRole() {
