@@ -29,7 +29,6 @@ public class ApiPostController {
     }
 
     @GetMapping("/post")
-    @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<PostListReponse> getPosts(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -40,7 +39,6 @@ public class ApiPostController {
     }
 
     @GetMapping("/post/search")
-    @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<PostListReponse> searchPosts(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -51,7 +49,6 @@ public class ApiPostController {
     }
 
     @GetMapping("/post/byDate")
-    @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<PostListReponse> getPostsByDate(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -62,7 +59,6 @@ public class ApiPostController {
     }
 
     @GetMapping("/post/byTag")
-    @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<PostListReponse> getPostsByTag(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -73,14 +69,12 @@ public class ApiPostController {
     }
 
     @GetMapping("/calendar")
-    @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<CalendarResponse> getCalendar(int year) {
         CalendarResponse response = postService.getCalendar(year);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/post/{id}")
-    @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<PostExpandedResponse> getPost(HttpSession session, @PathVariable int id) {
         PostExpandedResponse response = postService.getPostById(id, session.getId());
         if (response == null)
