@@ -4,7 +4,7 @@ import com.github.cage.Cage;
 import com.github.cage.image.Painter;
 import com.github.cage.token.RandomTokenGenerator;
 import main.api.request.RegistrationRequest;
-import main.api.response.AuthResponse;
+import main.api.response.AuthResultResponse;
 import main.api.response.CaptchaResponse;
 import main.api.response.RegistrationResponse;
 import main.api.response.UserResponse;
@@ -15,7 +15,6 @@ import main.model.enums.GlobalSettingValue;
 import main.model.enums.ModerationStatus;
 import main.repository.*;
 import main.service.AuthService;
-import main.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -24,8 +23,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
@@ -67,21 +68,21 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse logout(String httpSession) {
-        sessionRepository.remove(httpSession);
-        return new AuthResponse(true);
+    public AuthResultResponse logout(HttpServletRequest request) {
+        new SecurityContextLogoutHandler().logout(request, null, null);
+        return new AuthResultResponse(true);
     }
 
     @Override
-    public AuthResponse login(String email, String password) {
+    public AuthResultResponse login(String email, String password) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         org.springframework.security.core.userdetails.User user =  (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
         User currentUser = userRepository.findByEmail(user.getUsername()).orElseThrow(() -> new UsernameNotFoundException(user.getUsername()));
-        AuthResponse authResponse = new AuthResponse();
-        authResponse.setResult(true);
-        authResponse.setUser(convertUserToUserResponse(currentUser));
-        return authResponse;
+        AuthResultResponse authResultResponse = new AuthResultResponse();
+        authResultResponse.setResult(true);
+        authResultResponse.setUser(convertUserToUserResponse(currentUser));
+        return authResultResponse;
     }
 
 

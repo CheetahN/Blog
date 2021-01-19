@@ -7,15 +7,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AuthResponse {
+public class AuthResultResponse {
     private boolean result;
     private UserResponse user;
 
-    public AuthResponse(boolean result) {
+    public AuthResultResponse(boolean result) {
         this.result = result;
     }
 
-    public AuthResponse(boolean result, UserResponse user) {
+    public AuthResultResponse(boolean result, UserResponse user) {
         this.result = result;
         this.user = user;
     }
