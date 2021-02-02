@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Primary
@@ -65,6 +66,20 @@ public class AuthServiceImpl implements AuthService {
     public UserResponse check(String email) {
         User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email));
         return convertUserToUserResponse(currentUser);
+    }
+
+    public User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new SecurityException("Session is not authorized");
+        }
+
+        Optional<User> user = userRepository.findByEmail(auth.getName());
+
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException(" - User with : " + auth.getName() + " not found");
+        }
+        return user.get();
     }
 
     @Override

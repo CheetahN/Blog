@@ -45,13 +45,13 @@ public interface PostService {
      *
      * @return
      */
-    public CalendarResponse getCalendar(int year);
+    public CalendarResponse getCalendar(Integer year);
 
-    public PostExpandedResponse getPostById(int id, String sessionId);
+    public PostExpandedResponse getPostById(int id);
 
-    public PostListReponse getPostsForModeration(int offset, int limit, String status, String sessionId);
+    public PostListReponse getPostsForModeration(int offset, int limit, String status);
 
-    public PostListReponse getPostsMy(int offset, int limit, String status, String sessionId);
+    public PostListReponse getPostsMy(int offset, int limit, String status);
 
     public boolean moderate(String sessionId, int postId, String decision);
 }

@@ -5,6 +5,7 @@ import main.model.Post;
 import main.model.User;
 import main.model.enums.ModerationStatus;
 import main.repository.*;
+import main.service.AuthService;
 import main.service.PostService;
 import main.service.exceptions.PostNotFoundException;
 import main.service.exceptions.UserNotFoundException;
@@ -31,15 +32,17 @@ public class PostServiceImpl implements PostService {
     private final TagToPostRepository tagToPostRepository;
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, SessionRepository sessionRepository, UserRepository userRepository) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, SessionRepository sessionRepository, UserRepository userRepository, AuthService authService) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.tagToPostRepository = tagToPostRepository;
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
+        this.authService = authService;
     }
 
     @Override
@@ -88,7 +91,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public CalendarResponse getCalendar(int year) {
+    public CalendarResponse getCalendar(Integer year) {
+        if (year == null)
+                year = LocalDateTime.now().getYear();
         Map<String, Integer> postsCountsMap = new HashMap<>();
         List<Object[]> postsCountsList = postRepository.countByDays(year);
         postsCountsList.forEach(objects ->
@@ -125,24 +130,10 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostExpandedResponse getPostById(int postId, String sessionId) {
-        Integer userId = sessionRepository.getUserId(sessionId);
-        boolean isModerator = false;
-        boolean isAuthor = false;
+    public PostExpandedResponse getPostById(int postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
 
-        if (userId != null) {
-            User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-            isModerator = user.getIsModerator() == 1;
-            isAuthor = post.getUser().getId() == userId;
-        }
-
-        if (!(isAuthor || isModerator)) {
-            if (post.getTime().isAfter(LocalDateTime.now()) ||
-                post.getIsActive() == 0 ||
-                !(post.getModerationStatus() == ModerationStatus.ACCEPTED)) {
-                    return null;
-            }
+        if (authService.getCurrentUser().getIsModerator() == 0) {
             postRepository.updateIncrementViewCount(postId);
         }
 
@@ -175,14 +166,8 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostListReponse getPostsForModeration(int offset, int limit, String status, String sessionId) {
-        Integer userId = sessionRepository.getUserId(sessionId);
-        if (userId == null)
-            return null;
-        User currentUser = userRepository.findById(userId).orElse(new User());
-        if (currentUser.getIsModerator() == 0)
-            return null;
-
+    public PostListReponse getPostsForModeration(int offset, int limit, String status) {
+        User currentUser = authService.getCurrentUser();
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
         Pageable paging = PageRequest.of( offset / limit, limit, sort);
 
@@ -196,11 +181,8 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostListReponse getPostsMy(int offset, int limit, String status, String sessionId) {
-        Integer userId = sessionRepository.getUserId(sessionId);
-        if (userId == null)
-            return null;
-        User currentUser = userRepository.findById(userId).orElse(new User());
+    public PostListReponse getPostsMy(int offset, int limit, String status) {
+        User currentUser = authService.getCurrentUser();
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
         Pageable paging = PageRequest.of( offset / limit, limit, sort);
 

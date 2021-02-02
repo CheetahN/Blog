@@ -1,6 +1,6 @@
-spring.datasource.url: jdbc:mysql://192.168.1.16:3306/blog
-spring.datasource.username: root
-spring.datasource.password: password
+spring.datasource.url: jdbc:mysql://beyfwrq9iwqotud3bogu-mysql.services.clever-cloud.com:3306/beyfwrq9iwqotud3bogu
+spring.datasource.username: ut9hqfgn1yolha46
+spring.datasource.password: HaYIIYNZ6cr7S5S7ZDhX
 spring.jpa.hibernate.ddl-auto: validate
 spring.jpa.show-sql: false
 

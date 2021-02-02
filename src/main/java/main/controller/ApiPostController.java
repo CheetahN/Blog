@@ -69,14 +69,14 @@ public class ApiPostController {
     }
 
     @GetMapping("/calendar")
-    public ResponseEntity<CalendarResponse> getCalendar(int year) {
+    public ResponseEntity<CalendarResponse> getCalendar(Integer year) {
         CalendarResponse response = postService.getCalendar(year);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/post/{id}")
     public ResponseEntity<PostExpandedResponse> getPost(HttpSession session, @PathVariable int id) {
-        PostExpandedResponse response = postService.getPostById(id, session.getId());
+        PostExpandedResponse response = postService.getPostById(id);
         if (response == null)
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(response);
@@ -90,7 +90,7 @@ public class ApiPostController {
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(name = "status", required = false) String status) {
 
-        PostListReponse response = postService.getPostsForModeration(offset, limit, status, session.getId());
+        PostListReponse response = postService.getPostsForModeration(offset, limit, status);
         if (response == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(response);
@@ -104,7 +104,7 @@ public class ApiPostController {
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(name = "status", required = false) String status) {
 
-        PostListReponse response = postService.getPostsMy(offset, limit, status, session.getId());
+        PostListReponse response = postService.getPostsMy(offset, limit, status);
         if (response == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(response);

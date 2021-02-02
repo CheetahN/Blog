@@ -24,4 +24,6 @@ public interface AuthService {
     public RegistrationResponse register(RegistrationRequest request);
 
     public UserResponse convertUserToUserResponse(User user);
+
+    public User getCurrentUser();
 }
