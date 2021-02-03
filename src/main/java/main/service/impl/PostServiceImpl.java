@@ -132,8 +132,8 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostExpandedResponse getPostById(int postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-
-        if (authService.getCurrentUser().getIsModerator() == 0) {
+User user = authService.getCurrentUser();
+        if (authService.getCurrentUser() != null && authService.getCurrentUser().getIsModerator() == 0) {
             postRepository.updateIncrementViewCount(postId);
         }
 
@@ -143,7 +143,7 @@ public class PostServiceImpl implements PostService {
             CommentDTO.builder()
                     .id(comment.getId())
                     .text(comment.getText())
-                    .timestamp(comment.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
+                    .timestamp(comment.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
                     .user(comment.getUser().getId(), comment.getUser().getName(), comment.getUser().getPhoto())
                     .build()
             );
@@ -153,7 +153,7 @@ public class PostServiceImpl implements PostService {
         return PostExpandedResponse.builder()
                 .active(post.getIsActive() == 1)
                 .id(postId)
-                .timestamp(post.getTime().atZone(ZoneId.of("Europe/Moscow")).toEpochSecond())
+                .timestamp(post.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
                 .user(post.getUser().getId(), post.getUser().getName())
                 .title(post.getTitle())
                 .text(post.getText())

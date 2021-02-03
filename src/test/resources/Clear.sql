@@ -1,4 +1,5 @@
 SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE post_votes;
 TRUNCATE tag2post;
 TRUNCATE tags;
 TRUNCATE post_votes;

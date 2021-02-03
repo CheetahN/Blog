@@ -204,7 +204,7 @@ public class PostControllerTest {
     @WithUserDetails("anna@mail.ru")
     @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void getModeration() throws Exception {
+    public void getModerationDeclinedTest() throws Exception {
         this.mockMvc.perform(get("/api/post/moderation")
                 .queryParam("offset", "0")
                 .queryParam("limit", "10")
@@ -220,6 +220,40 @@ public class PostControllerTest {
     }
 
     @Test
+    @WithUserDetails("anna@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getModerationNewTest() throws Exception {
+        this.mockMvc.perform(get("/api/post/moderation")
+                .queryParam("offset", "0")
+                .queryParam("limit", "10")
+                .queryParam("status", "new"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(jsonPath("$.count").value("5"))
+                .andExpect(jsonPath("$.posts[0].id").value("27"))
+                .andExpect(jsonPath("$.posts[4].id").value("23"));
+
+    }
+
+    @Test
+    @WithUserDetails("anna@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getModerationAcceptedTest() throws Exception {
+        this.mockMvc.perform(get("/api/post/moderation")
+                .queryParam("offset", "0")
+                .queryParam("limit", "10")
+                .queryParam("status", "accepted"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(jsonPath("$.count").value("1"))
+                .andExpect(jsonPath("$.posts[0].id").value("42"));
+    }
+
+    @Test
     @WithUserDetails("pasha@mail.ru")
     @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
@@ -232,5 +266,82 @@ public class PostControllerTest {
                 .andExpect(authenticated())
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql", "/AddLikes.sql", "/AddTags.sql", "/AddTestComments.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPostIdTest() throws Exception {
+        this.mockMvc.perform(get("/api/post/10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.timestamp").value("1603238752"))
+                .andExpect(jsonPath("$.active").value("true"))
+                .andExpect(jsonPath("$.user.name").value("Fedor"))
+                .andExpect(jsonPath("$.title").value("POST TEN"))
+                .andExpect(jsonPath("$.text", startsWith("Даниэль Риккардо: У меня хорошие воспоминания ")))
+                .andExpect(jsonPath("$.likeCount").value(5))
+                .andExpect(jsonPath("$.dislikeCount").value(2))
+                .andExpect(jsonPath("$.tags[0]").value("Java"))
+                .andExpect(jsonPath("$.tags[1]").value("F1"))
+                .andExpect(jsonPath("$.comments[0].id").value(5))
+                .andExpect(jsonPath("$.comments[1].id").value(6))
+                .andExpect(jsonPath("$.viewCount").value(1000));
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPostsMyPendingTest() throws Exception {
+        this.mockMvc.perform(get("/api/post/my")
+                .queryParam("offset", "0")
+                .queryParam("status", "pending")
+                .queryParam("limit", "10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.count").value("5"))
+                .andExpect(jsonPath("$.posts[0].id").value("27"))
+                .andExpect(jsonPath("$.posts[4].id").value("23"));
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPostsMyPublishedTest() throws Exception {
+        this.mockMvc.perform(get("/api/post/my")
+                .queryParam("offset", "0")
+                .queryParam("status", "published")
+                .queryParam("limit", "10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.count").value("5"))
+                .andExpect(jsonPath("$.posts[0].id").value("9"))
+                .andExpect(jsonPath("$.posts[4].id").value("12"));
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPostsMyDeclinedTest() throws Exception {
+        this.mockMvc.perform(get("/api/post/my")
+                .queryParam("offset", "0")
+                .queryParam("status", "declined")
+                .queryParam("limit", "10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.count").value("14"))
+                .andExpect(jsonPath("$.posts[0].id").value("37"))
+                .andExpect(jsonPath("$.posts[9].id").value("32"))
+                .andExpect(jsonPath("$.posts[10]").doesNotExist());;
+    }
+
+
 }
 

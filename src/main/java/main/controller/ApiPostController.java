@@ -9,7 +9,6 @@ import main.api.response.ResultResponse;
 import main.service.PostService;
 import main.service.VoteService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -75,7 +74,7 @@ public class ApiPostController {
     }
 
     @GetMapping("/post/{id}")
-    public ResponseEntity<PostExpandedResponse> getPost(HttpSession session, @PathVariable int id) {
+    public ResponseEntity<PostExpandedResponse> getPost(@PathVariable int id) {
         PostExpandedResponse response = postService.getPostById(id);
         if (response == null)
             return ResponseEntity.notFound().build();
@@ -90,10 +89,7 @@ public class ApiPostController {
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(name = "status", required = false) String status) {
 
-        PostListReponse response = postService.getPostsForModeration(offset, limit, status);
-        if (response == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.getPostsForModeration(offset, limit, status));
     }
 
     @GetMapping("/post/my")
@@ -104,10 +100,7 @@ public class ApiPostController {
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(name = "status", required = false) String status) {
 
-        PostListReponse response = postService.getPostsMy(offset, limit, status);
-        if (response == null)
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(postService.getPostsMy(offset, limit, status));
     }
 
     @PostMapping("/moderation")

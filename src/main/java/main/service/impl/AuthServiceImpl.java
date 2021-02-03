@@ -70,9 +70,9 @@ public class AuthServiceImpl implements AuthService {
 
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new SecurityException("Session is not authorized");
-        }
+
+        if (auth.getPrincipal().equals("anonymousUser"))
+            return null;
 
         Optional<User> user = userRepository.findByEmail(auth.getName());
 

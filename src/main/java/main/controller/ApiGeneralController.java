@@ -27,18 +27,18 @@ public class ApiGeneralController {
         this.tagService = tagService;
     }
     @GetMapping("/init")
-    public InitResponse init() {
-        return initResponse;
+    public ResponseEntity<InitResponse> init() {
+        return ResponseEntity.ok(initResponse);
     }
 
     @GetMapping("/settings")
-    public SettingsResponse settings() {
-        return settingsService.getGlobalSettings();
+    public ResponseEntity<SettingsResponse> settings() {
+        return ResponseEntity.ok(settingsService.getGlobalSettings());
     }
 
     @GetMapping("/tag")
-    public TagResponse getTag(@RequestParam(name = "query", required = false) String query) {
-        return tagService.getTag(query);
+    public ResponseEntity<TagResponse>  getTag(@RequestParam(name = "query", required = false) String query) {
+        return ResponseEntity.ok(tagService.getTag(query));
     }
 
     @PutMapping("/settings")
