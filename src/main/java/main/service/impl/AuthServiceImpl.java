@@ -13,7 +13,10 @@ import main.model.User;
 import main.model.enums.GlobalSettingCode;
 import main.model.enums.GlobalSettingValue;
 import main.model.enums.ModerationStatus;
-import main.repository.*;
+import main.repository.CaptchaRepository;
+import main.repository.PostRepository;
+import main.repository.SettingsRepository;
+import main.repository.UserRepository;
 import main.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +34,6 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @Primary
@@ -39,7 +41,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CaptchaRepository captchaRepository;
-    private final SessionRepository sessionRepository;
     private final SettingsRepository settingsRepository;
     private final AuthenticationManager authenticationManager;
     @Value("${blog.captcha.lifetime}")
@@ -53,11 +54,10 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Autowired
-    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SessionRepository sessionRepository, SettingsServiceImpl settingsService, SettingsRepository settingsRepository, AuthenticationManager authenticationManager) {
+    public AuthServiceImpl(UserRepository userRepository, PostRepository postRepository, CaptchaRepository captchaRepository, SettingsServiceImpl settingsService, SettingsRepository settingsRepository, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.captchaRepository = captchaRepository;
-        this.sessionRepository = sessionRepository;
         this.settingsRepository = settingsRepository;
         this.authenticationManager = authenticationManager;
     }
@@ -68,19 +68,7 @@ public class AuthServiceImpl implements AuthService {
         return convertUserToUserResponse(currentUser);
     }
 
-    public User getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth.getPrincipal().equals("anonymousUser"))
-            return null;
-
-        Optional<User> user = userRepository.findByEmail(auth.getName());
-
-        if (user.isEmpty()) {
-            throw new UsernameNotFoundException(" - User with : " + auth.getName() + " not found");
-        }
-        return user.get();
-    }
 
     @Override
     public AuthResultResponse logout(HttpServletRequest request) {

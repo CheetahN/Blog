@@ -4,9 +4,10 @@ import main.model.Post;
 import main.model.User;
 import main.model.Vote;
 import main.repository.PostRepository;
-import main.repository.SessionRepository;
 import main.repository.UserRepository;
 import main.repository.VoteRepository;
+import main.service.AuthService;
+import main.service.UserService;
 import main.service.VoteService;
 import main.service.exceptions.PostNotFoundException;
 import main.service.exceptions.UserNotFoundException;
@@ -18,25 +19,22 @@ import java.time.LocalDateTime;
 @Service
 public class VoteServiceImpl implements VoteService {
     private final VoteRepository voteRepository;
-    private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final PostRepository postRepository;
 
     @Autowired
-    public VoteServiceImpl(VoteRepository voteRepository, SessionRepository sessionRepository, UserRepository userRepository, PostRepository postRepository) {
+    public VoteServiceImpl(VoteRepository voteRepository, UserRepository userRepository, UserService userService, PostRepository postRepository) {
         this.voteRepository = voteRepository;
-        this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
         this.postRepository = postRepository;
     }
 
     @Override
     public boolean like(String sessionId, int postId) {
-        Integer userId = sessionRepository.getUserId(sessionId);
-        if (userId == null)
-            return false;
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        User user = userService.getCurrentUser();
         Vote vote = voteRepository.findByPostAndUser(post, user);
         if (vote == null) {
             vote = new Vote();
@@ -61,11 +59,8 @@ public class VoteServiceImpl implements VoteService {
 
     @Override
     public boolean dislike(String sessionId, int postId) {
-        Integer userId = sessionRepository.getUserId(sessionId);
-        if (userId == null)
-            return false;
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        User user = userService.getCurrentUser();
         Vote vote = voteRepository.findByPostAndUser(post, user);
         if (vote == null) {
             vote = new Vote();

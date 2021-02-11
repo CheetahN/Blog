@@ -6,11 +6,11 @@ import main.model.GlobalSetting;
 import main.model.User;
 import main.model.enums.GlobalSettingCode;
 import main.model.enums.GlobalSettingValue;
-import main.repository.SessionRepository;
 import main.repository.SettingsRepository;
 import main.repository.UserRepository;
+import main.service.AuthService;
 import main.service.SettingsService;
-import main.service.exceptions.UserNotFoundException;
+import main.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -21,14 +21,14 @@ import java.util.List;
 @Primary
 public class SettingsServiceImpl implements SettingsService {
     private final SettingsRepository settingsRepository;
-    private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @Autowired
-    public SettingsServiceImpl(SettingsRepository settingsRepository, SessionRepository sessionRepository, UserRepository userRepository) {
+    public SettingsServiceImpl(SettingsRepository settingsRepository, UserRepository userRepository, UserService userService) {
         this.settingsRepository = settingsRepository;
-        this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Override
@@ -48,11 +48,8 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     @Override
-    public boolean setGlobalSettings(String sessionID, SettingsRequest settingsRequest) {
-        Integer userId = sessionRepository.getUserId(sessionID);
-        if (userId == null)
-            return false;
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+    public boolean setGlobalSettings(SettingsRequest settingsRequest) {
+        User user = userService.getCurrentUser();
         if (user.getIsModerator() == 0)
             return false;
         GlobalSetting globalSetting = settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE);

@@ -43,8 +43,8 @@ public class ApiGeneralController {
 
     @PutMapping("/settings")
     @PreAuthorize("hasAuthority('user:write')")
-    public ResponseEntity changeSettings(@RequestBody SettingsRequest settingsRequest, HttpSession session) {
-        if (settingsService.setGlobalSettings(session.getId(), settingsRequest))
+    public ResponseEntity changeSettings(@RequestBody SettingsRequest settingsRequest) {
+        if (settingsService.setGlobalSettings(settingsRequest))
             return ResponseEntity.ok().build();
         else
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

@@ -53,5 +53,5 @@ public interface PostService {
 
     public PostListReponse getPostsMy(int offset, int limit, String status);
 
-    public boolean moderate(String sessionId, int postId, String decision);
+    public boolean moderate(int postId, String decision);
 }

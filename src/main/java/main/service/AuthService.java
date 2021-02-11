@@ -25,5 +25,4 @@ public interface AuthService {
 
     public UserResponse convertUserToUserResponse(User user);
 
-    public User getCurrentUser();
 }

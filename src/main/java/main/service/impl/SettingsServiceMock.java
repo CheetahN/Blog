@@ -17,7 +17,7 @@ public class SettingsServiceMock implements SettingsService {
     }
 
     @Override
-    public boolean setGlobalSettings(String sessionID, SettingsRequest settingsRequest) {
+    public boolean setGlobalSettings(SettingsRequest settingsRequest) {
         return false;
     }
 

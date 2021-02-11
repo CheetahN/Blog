@@ -1,7 +1,10 @@
 package main;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import main.api.request.ModerationRequest;
 import main.controller.ApiPostController;
+import main.model.enums.ModerationStatus;
+import main.repository.PostRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,8 +18,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,6 +35,8 @@ public class PostControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private PostRepository postRepository;
 
 
     @Test
@@ -342,6 +350,51 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.posts[10]").doesNotExist());;
     }
 
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void postModeration1() throws Exception {
+        ModerationRequest request = new ModerationRequest(1, "accept");
+        this.mockMvc.perform(post("/api/moderation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(authenticated())
+                .andExpect(status().isForbidden());
+        assertTrue(postRepository.findById(27).isPresent());
+        assertEquals(postRepository.findById(27).get().getModerationStatus(), ModerationStatus.NEW);
+    }
 
+    @Test
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void postModeration2() throws Exception {
+        ModerationRequest request = new ModerationRequest(1, "accept");
+        this.mockMvc.perform(post("/api/moderation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+        assertTrue(postRepository.findById(27).isPresent());
+        assertEquals(postRepository.findById(27).get().getModerationStatus(), ModerationStatus.NEW);
+    }
+
+    @Test
+    @WithUserDetails("anna@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void postModeration3() throws Exception {
+        ModerationRequest request = new ModerationRequest(27, "accept");
+        this.mockMvc.perform(post("/api/moderation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.result").value("true"));
+
+        assertTrue(postRepository.findById(27).isPresent());
+        assertEquals(postRepository.findById(27).get().getModerationStatus(), ModerationStatus.ACCEPTED);
+    }
 }
 

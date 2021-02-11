@@ -5,10 +5,9 @@ import main.model.Post;
 import main.model.User;
 import main.model.enums.ModerationStatus;
 import main.repository.*;
-import main.service.AuthService;
 import main.service.PostService;
+import main.service.UserService;
 import main.service.exceptions.PostNotFoundException;
-import main.service.exceptions.UserNotFoundException;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -30,19 +29,17 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final TagToPostRepository tagToPostRepository;
-    private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
-    private final AuthService authService;
+    private final UserService userService;
 
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, SessionRepository sessionRepository, UserRepository userRepository, AuthService authService) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, UserRepository userRepository, UserService userService) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.tagToPostRepository = tagToPostRepository;
-        this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
-        this.authService = authService;
+        this.userService = userService;
     }
 
     @Override
@@ -132,8 +129,8 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostExpandedResponse getPostById(int postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-User user = authService.getCurrentUser();
-        if (authService.getCurrentUser() != null && authService.getCurrentUser().getIsModerator() == 0) {
+User user = userService.getCurrentUser();
+        if (userService.getCurrentUser() != null && userService.getCurrentUser().getIsModerator() == 0) {
             postRepository.updateIncrementViewCount(postId);
         }
 
@@ -167,7 +164,7 @@ User user = authService.getCurrentUser();
 
     @Override
     public PostListReponse getPostsForModeration(int offset, int limit, String status) {
-        User currentUser = authService.getCurrentUser();
+        User currentUser = userService.getCurrentUser();
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
         Pageable paging = PageRequest.of( offset / limit, limit, sort);
 
@@ -182,7 +179,7 @@ User user = authService.getCurrentUser();
 
     @Override
     public PostListReponse getPostsMy(int offset, int limit, String status) {
-        User currentUser = authService.getCurrentUser();
+        User currentUser = userService.getCurrentUser();
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
         Pageable paging = PageRequest.of( offset / limit, limit, sort);
 
@@ -203,15 +200,9 @@ User user = authService.getCurrentUser();
     }
 
     @Override
-    public boolean moderate(String sessionId, int postId, String decision) {
-        Integer userId = sessionRepository.getUserId(sessionId);
-        if (userId == null)
-            return false;
-        User currentUser = userRepository.findById(userId).orElse(new User());
-        if (currentUser.getIsModerator() == 0)
-            return false;
+    public boolean moderate(int postId, String decision) {
+        User currentUser = userService.getCurrentUser();
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-
         ModerationStatus status;
         if ("accept".equals(decision)) {
             status = ModerationStatus.ACCEPTED;

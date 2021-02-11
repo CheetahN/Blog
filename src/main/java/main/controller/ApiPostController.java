@@ -105,9 +105,9 @@ public class ApiPostController {
 
     @PostMapping("/moderation")
     @PreAuthorize("hasAuthority('user:moderate')")
-    public ResponseEntity<ResultResponse> moderate(HttpSession session, @RequestBody ModerationRequest moderationRequest) {
+    public ResponseEntity<ResultResponse> moderate(@RequestBody ModerationRequest moderationRequest) {
         ResultResponse response = new ResultResponse(
-                postService.moderate(session.getId(), moderationRequest.getPostId(), moderationRequest.getDecision()));
+                postService.moderate(moderationRequest.getPostId(), moderationRequest.getDecision()));
         return ResponseEntity.ok(response);
     }
 

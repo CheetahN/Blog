@@ -6,5 +6,5 @@ import main.api.response.SettingsResponse;
 public interface SettingsService {
     public SettingsResponse getGlobalSettings();
 
-    public boolean setGlobalSettings(String sessionId, SettingsRequest settingsRequest);
+    public boolean setGlobalSettings(SettingsRequest settingsRequest);
 }
