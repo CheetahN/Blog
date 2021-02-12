@@ -42,7 +42,7 @@ public class ApiGeneralController {
     }
 
     @PutMapping("/settings")
-    @PreAuthorize("hasAuthority('user:write')")
+    @PreAuthorize("hasAuthority('user:moderate')")
     public ResponseEntity changeSettings(@RequestBody SettingsRequest settingsRequest) {
         if (settingsService.setGlobalSettings(settingsRequest))
             return ResponseEntity.ok().build();
