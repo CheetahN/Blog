@@ -9,4 +9,9 @@ public class LoginRequest {
     String email;
     @JsonProperty("password")
     String password;
+
+    public LoginRequest(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
 }

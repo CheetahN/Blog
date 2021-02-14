@@ -78,13 +78,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResultResponse login(String email, String password) {
+        AuthResultResponse authResultResponse = new AuthResultResponse();
+        authResultResponse.setResult(false);
+        org.springframework.security.core.userdetails.User user;
+        try {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        org.springframework.security.core.userdetails.User user =  (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        User currentUser = userRepository.findByEmail(user.getUsername()).orElseThrow(() -> new UsernameNotFoundException(user.getUsername()));
-        AuthResultResponse authResultResponse = new AuthResultResponse();
-        authResultResponse.setResult(true);
-        authResultResponse.setUser(convertUserToUserResponse(currentUser));
+
+            user = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        } catch (Exception e) {
+            return authResultResponse;
+        }
+
+        if (userRepository.findByEmail(user.getUsername()).isEmpty()) {
+            return authResultResponse;
+        }
+        else {
+            User currentUser = userRepository.findByEmail(user.getUsername()).get();
+            authResultResponse.setResult(true);
+            authResultResponse.setUser(convertUserToUserResponse(currentUser));
+        }
         return authResultResponse;
     }
 

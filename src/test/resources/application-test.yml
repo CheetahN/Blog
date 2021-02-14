@@ -1,15 +1,19 @@
 spring.datasource.url: jdbc:mysql://brwnm9gytfbqabsoi1ak-mysql.services.clever-cloud.com:3306/brwnm9gytfbqabsoi1ak
 spring.datasource.username: u9dfnjzrqhgtd5mj
 spring.datasource.password: Ppb0tjZo4dmQ2kdMEfnF
+#spring.datasource.url: jdbc:mysql://192.168.1.16:3307/blog-test
+#spring.datasource.username: root
+#spring.datasource.password: password
+
 spring.jpa.hibernate.ddl-auto: validate
 spring.jpa.show-sql: false
 
-blog.title: "DevPub"
-blog.subtitle: "Рассказы хмельных единорогов"
-blog.phone: "+77776543210"
-blog.email: "ssngg@yandex.ru"
-blog.copyright: "Никита Стоян"
-blog.copyrightFrom: "2020"
+blog.title: DevPub
+blog.subtitle: Trash Book
+blog.phone: +77776543210
+blog.email: efee13413fs@gundex.hru
+blog.copyright: Nikita Stoyan
+blog.copyrightFrom: 2021
 
 # lifetime in minutes
 blog.captcha.lifetime: 60

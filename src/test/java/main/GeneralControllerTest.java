@@ -5,7 +5,6 @@ import main.api.request.SettingsRequest;
 import main.controller.ApiGeneralController;
 import main.model.enums.GlobalSettingCode;
 import main.model.enums.GlobalSettingValue;
-import main.model.enums.ModerationStatus;
 import main.repository.SettingsRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -118,6 +116,19 @@ public class GeneralControllerTest {
         assertEquals(settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE).getValue(), GlobalSettingValue.NO);
         assertEquals(settingsRepository.findByCode(GlobalSettingCode.STATISTICS_IS_PUBLIC).getValue(), GlobalSettingValue.YES);
         assertEquals(settingsRepository.findByCode(GlobalSettingCode.POST_PREMODERATION).getValue(), GlobalSettingValue.YES);
+    }
 
+    @Test
+    public void getInitTest() throws Exception {
+        this.mockMvc.perform(get("/api/init/"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.title").value("DevPub"))
+                .andExpect(jsonPath("$.subtitle").value("Trash Book"))
+                .andExpect(jsonPath("$.phone").value("+77776543210"))
+                .andExpect(jsonPath("$.email").value("efee13413fs@gundex.hru"))
+                .andExpect(jsonPath("$.copyright").value("Nikita Stoyan"))
+                .andExpect(jsonPath("$.copyrightFrom").value("2021"));
     }
 }

@@ -4,12 +4,12 @@ spring.datasource.password: HaYIIYNZ6cr7S5S7ZDhX
 spring.jpa.hibernate.ddl-auto: validate
 spring.jpa.show-sql: false
 
-blog.title: "DevPub"
-blog.subtitle: "Рассказы хмельных единорогов"
-blog.phone: "+77776543210"
-blog.email: "ssngg@yandex.ru"
-blog.copyright: "Никита Стоян"
-blog.copyrightFrom: "2020"
+blog.title: DevPub
+blog.subtitle: Trash Book
+blog.phone: +77776543210
+blog.email: efee13413fs@gundex.hru
+blog.copyright: Nikita Stoyan
+blog.copyrightFrom: 2021
 
 # lifetime in minutes
 blog.captcha.lifetime: 60
