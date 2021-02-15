@@ -2,6 +2,7 @@ package main;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import main.api.request.LoginRequest;
+import main.api.request.RegistrationRequest;
 import main.controller.ApiAuthController;
 import main.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -99,5 +101,18 @@ public class AuthControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.result").value("false"))
                 .andExpect(jsonPath("$.user.id").doesNotExist());
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getLogoutTest() throws Exception {
+        this.mockMvc.perform(get("/api/auth/logout"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(unauthenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.result").value("true"));
     }
 }
