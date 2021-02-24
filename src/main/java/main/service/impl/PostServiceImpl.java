@@ -90,7 +90,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public CalendarResponse getCalendar(Integer year) {
         if (year == null)
-                year = LocalDateTime.now().getYear();
+            year = LocalDateTime.now().getYear();
         Map<String, Integer> postsCountsMap = new HashMap<>();
         List<Object[]> postsCountsList = postRepository.countByDays(year);
         postsCountsList.forEach(objects ->
@@ -129,20 +129,20 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostExpandedResponse getPostById(int postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-User user = userService.getCurrentUser();
-        if (userService.getCurrentUser() != null && userService.getCurrentUser().getIsModerator() == 0) {
+        User user = userService.getCurrentUser();
+        if (user != null && user.getIsModerator() == 0) {
             postRepository.updateIncrementViewCount(postId);
         }
 
         List<CommentDTO> commentsDTO = new ArrayList<>();
         post.getComments().forEach(comment -> {
             commentsDTO.add(
-            CommentDTO.builder()
-                    .id(comment.getId())
-                    .text(comment.getText())
-                    .timestamp(comment.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
-                    .user(comment.getUser().getId(), comment.getUser().getName(), comment.getUser().getPhoto())
-                    .build()
+                    CommentDTO.builder()
+                            .id(comment.getId())
+                            .text(comment.getText())
+                            .timestamp(comment.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
+                            .user(comment.getUser().getId(), comment.getUser().getName(), comment.getUser().getPhoto())
+                            .build()
             );
         });
 

@@ -8,7 +8,6 @@ import main.model.enums.GlobalSettingCode;
 import main.model.enums.GlobalSettingValue;
 import main.repository.SettingsRepository;
 import main.repository.UserRepository;
-import main.service.AuthService;
 import main.service.SettingsService;
 import main.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

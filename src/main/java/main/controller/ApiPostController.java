@@ -1,8 +1,6 @@
 package main.controller;
 
-import main.api.request.ModerationRequest;
 import main.api.request.VoteRequest;
-import main.api.response.CalendarResponse;
 import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
 import main.api.response.ResultResponse;
@@ -16,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/post")
 public class ApiPostController {
     private final PostService postService;
     private final VoteService voteService;
@@ -27,7 +25,7 @@ public class ApiPostController {
         this.voteService = voteService;
     }
 
-    @GetMapping("/post")
+    @GetMapping("")
     public ResponseEntity<PostListReponse> getPosts(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -37,7 +35,7 @@ public class ApiPostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/post/search")
+    @GetMapping("/search")
     public ResponseEntity<PostListReponse> searchPosts(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -47,7 +45,7 @@ public class ApiPostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/post/byDate")
+    @GetMapping("/byDate")
     public ResponseEntity<PostListReponse> getPostsByDate(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -57,7 +55,7 @@ public class ApiPostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/post/byTag")
+    @GetMapping("/byTag")
     public ResponseEntity<PostListReponse> getPostsByTag(
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
@@ -67,13 +65,9 @@ public class ApiPostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/calendar")
-    public ResponseEntity<CalendarResponse> getCalendar(Integer year) {
-        CalendarResponse response = postService.getCalendar(year);
-        return ResponseEntity.ok(response);
-    }
 
-    @GetMapping("/post/{id}")
+
+    @GetMapping("/{id}")
     public ResponseEntity<PostExpandedResponse> getPost(@PathVariable int id) {
         PostExpandedResponse response = postService.getPostById(id);
         if (response == null)
@@ -81,7 +75,7 @@ public class ApiPostController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("post/moderation")
+    @GetMapping("/moderation")
     @PreAuthorize("hasAuthority('user:moderate')")
     public ResponseEntity<PostListReponse> getPostsForModeration(
             HttpSession session,
@@ -92,7 +86,7 @@ public class ApiPostController {
         return ResponseEntity.ok(postService.getPostsForModeration(offset, limit, status));
     }
 
-    @GetMapping("/post/my")
+    @GetMapping("/my")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<PostListReponse> getPostsMy(
             HttpSession session,
@@ -103,15 +97,8 @@ public class ApiPostController {
         return ResponseEntity.ok(postService.getPostsMy(offset, limit, status));
     }
 
-    @PostMapping("/moderation")
-    @PreAuthorize("hasAuthority('user:moderate')")
-    public ResponseEntity<ResultResponse> moderate(@RequestBody ModerationRequest moderationRequest) {
-        ResultResponse response = new ResultResponse(
-                postService.moderate(moderationRequest.getPostId(), moderationRequest.getDecision()));
-        return ResponseEntity.ok(response);
-    }
 
-    @PostMapping("/post/like")
+    @PostMapping("/like")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<ResultResponse> like(HttpSession session, @RequestBody VoteRequest voteRequest) {
         ResultResponse response = new ResultResponse(
@@ -119,7 +106,7 @@ public class ApiPostController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/post/dislike")
+    @PostMapping("/dislike")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<ResultResponse> dislike(HttpSession session, @RequestBody VoteRequest voteRequest) {
         ResultResponse response = new ResultResponse(

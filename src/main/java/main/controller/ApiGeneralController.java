@@ -1,9 +1,9 @@
 package main.controller;
 
+import main.api.request.ModerationRequest;
 import main.api.request.SettingsRequest;
-import main.api.response.InitResponse;
-import main.api.response.SettingsResponse;
-import main.api.response.TagResponse;
+import main.api.response.*;
+import main.service.PostService;
 import main.service.SettingsService;
 import main.service.TagService;
 import org.springframework.http.HttpStatus;
@@ -18,11 +18,13 @@ public class ApiGeneralController {
     private final InitResponse initResponse;
     private final SettingsService settingsService;
     private final TagService tagService;
+    private final PostService postService;
 
-    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService) {
+    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService, PostService postService) {
         this.initResponse = initResponse;
         this.settingsService = settingsService;
         this.tagService = tagService;
+        this.postService = postService;
     }
     @GetMapping("/init")
     public ResponseEntity<InitResponse> init() {
@@ -46,5 +48,19 @@ public class ApiGeneralController {
             return ResponseEntity.ok().build();
         else
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @PostMapping("/moderation")
+    @PreAuthorize("hasAuthority('user:moderate')")
+    public ResponseEntity<ResultResponse> moderate(@RequestBody ModerationRequest moderationRequest) {
+        ResultResponse response = new ResultResponse(
+                postService.moderate(moderationRequest.getPostId(), moderationRequest.getDecision()));
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/calendar")
+    public ResponseEntity<CalendarResponse> getCalendar(Integer year) {
+        CalendarResponse response = postService.getCalendar(year);
+        return ResponseEntity.ok(response);
     }
 }

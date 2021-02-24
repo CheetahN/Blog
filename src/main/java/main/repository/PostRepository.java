@@ -51,8 +51,6 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     public Page<Post> findByDate(String dateQuery, Pageable paging);
 
     /**
-     *
-     *
      * @return list of years with posts
      */
     @Query(value = "select year(p.time) as y from Post p group by y order by y")

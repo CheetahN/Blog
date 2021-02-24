@@ -139,7 +139,7 @@ public class AuthServiceImpl implements AuthService {
     public RegistrationResponse register(RegistrationRequest request) {
         if (settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE).getValue() == GlobalSettingValue.NO)
             return null;
-        String LATIN = "^\\w*$";
+        String LATIN = "^\\w{3,}$";
         String CYRILLIC = "^[а-яА-Я0-9_]{3,}$";
         boolean result = true;
         Map<String, String> errors = new HashMap<>();

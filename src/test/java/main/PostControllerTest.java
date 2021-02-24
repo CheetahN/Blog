@@ -173,27 +173,6 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.posts[10]").doesNotExist());
     }
 
-
-
-    @Test
-    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void calendarTest() throws Exception {
-        this.mockMvc.perform(get("/api/calendar")
-                .queryParam("year", "2020"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.years", hasSize(2)))
-                .andExpect(jsonPath("$.years.[0]").value("2020"))
-                .andExpect(jsonPath("$.years.[1]").value("2021"))
-                .andExpect(jsonPath("$.posts", aMapWithSize(9)))
-                .andExpect(jsonPath("$.posts.2020-03-21").value("2"))
-                .andExpect(jsonPath("$.posts.2020-01-21").value("2"))
-                .andExpect(jsonPath("$.posts.2020-09-21").value("2"))
-                .andExpect(jsonPath("$.posts.2020-10-21").value("1"))
-                .andExpect(jsonPath("$.posts.2020-11-21").value("2"));
-    }
     @Test
     @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
@@ -348,53 +327,6 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.posts[0].id").value("37"))
                 .andExpect(jsonPath("$.posts[9].id").value("32"))
                 .andExpect(jsonPath("$.posts[10]").doesNotExist());;
-    }
-
-    @Test
-    @WithUserDetails("pasha@mail.ru")
-    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void postModeration1() throws Exception {
-        ModerationRequest request = new ModerationRequest(1, "accept");
-        this.mockMvc.perform(post("/api/moderation")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(authenticated())
-                .andExpect(status().isForbidden());
-        assertTrue(postRepository.findById(27).isPresent());
-        assertEquals(postRepository.findById(27).get().getModerationStatus(), ModerationStatus.NEW);
-    }
-
-    @Test
-    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void postModeration2() throws Exception {
-        ModerationRequest request = new ModerationRequest(1, "accept");
-        this.mockMvc.perform(post("/api/moderation")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
-        assertTrue(postRepository.findById(27).isPresent());
-        assertEquals(postRepository.findById(27).get().getModerationStatus(), ModerationStatus.NEW);
-    }
-
-    @Test
-    @WithUserDetails("anna@mail.ru")
-    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void postModeration3() throws Exception {
-        ModerationRequest request = new ModerationRequest(27, "accept");
-        this.mockMvc.perform(post("/api/moderation")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.result").value("true"));
-
-        assertTrue(postRepository.findById(27).isPresent());
-        assertEquals(postRepository.findById(27).get().getModerationStatus(), ModerationStatus.ACCEPTED);
     }
 }
 
