@@ -7,7 +7,6 @@ import main.model.User;
 import main.model.enums.GlobalSettingCode;
 import main.model.enums.GlobalSettingValue;
 import main.repository.SettingsRepository;
-import main.repository.UserRepository;
 import main.service.SettingsService;
 import main.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +19,11 @@ import java.util.List;
 @Primary
 public class SettingsServiceImpl implements SettingsService {
     private final SettingsRepository settingsRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
 
     @Autowired
-    public SettingsServiceImpl(SettingsRepository settingsRepository, UserRepository userRepository, UserService userService) {
+    public SettingsServiceImpl(SettingsRepository settingsRepository, UserService userService) {
         this.settingsRepository = settingsRepository;
-        this.userRepository = userRepository;
         this.userService = userService;
     }
 

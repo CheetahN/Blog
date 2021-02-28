@@ -19,8 +19,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
@@ -205,5 +204,19 @@ public class GeneralControllerTest {
 
         assertTrue(postRepository.findById(27).isPresent());
         assertEquals(postRepository.findById(27).get().getModerationStatus(), ModerationStatus.ACCEPTED);
+    }
+
+    @Test
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void calendarNoQueryTest() throws Exception {
+        this.mockMvc.perform(get("/api/calendar"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.years", hasSize(2)))
+                .andExpect(jsonPath("$.years.[0]").value("2020"))
+                .andExpect(jsonPath("$.years.[1]").value("2021"))
+                .andExpect(jsonPath("$.posts", anEmptyMap()));
     }
 }

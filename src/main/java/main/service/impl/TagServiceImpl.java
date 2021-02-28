@@ -2,6 +2,9 @@ package main.service.impl;
 
 import main.api.response.TagDTO;
 import main.api.response.TagResponse;
+import main.model.Tag;
+import main.model.TagToPost;
+import main.repository.PostRepository;
 import main.repository.TagRepository;
 import main.repository.TagToPostRepository;
 import main.service.TagService;
@@ -15,11 +18,15 @@ import java.util.List;
 @Service
 @Primary
 public class TagServiceImpl implements TagService {
-    private TagToPostRepository tagToPostRepository;
+    private final TagToPostRepository tagToPostRepository;
+    private final TagRepository tagRepository;
+    private final PostRepository postRepository;
 
     @Autowired
-    public TagServiceImpl(TagRepository tagRepository, TagToPostRepository tagToPostRepository) {
+    public TagServiceImpl(TagRepository tagRepository, TagToPostRepository tagToPostRepository, TagRepository tagRepository1, PostRepository postRepository) {
         this.tagToPostRepository = tagToPostRepository;
+        this.tagRepository = tagRepository1;
+        this.postRepository = postRepository;
     }
 
     @Override
@@ -45,5 +52,14 @@ public class TagServiceImpl implements TagService {
         });
 
         return new TagResponse(response);
+    }
+
+    public void addTag(String tagName, Integer post){
+        Tag tag = tagRepository.findByName(tagName).orElse(new Tag());
+        if (tag.getName() == null) {
+            tag.setName(tagName);
+            tag = tagRepository.save(tag);
+        }
+        tagToPostRepository.save(new TagToPost(postRepository.getOne(post), tag));
     }
 }

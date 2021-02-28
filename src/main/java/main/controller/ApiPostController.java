@@ -1,5 +1,6 @@
 package main.controller;
 
+import main.api.request.PostRequest;
 import main.api.request.VoteRequest;
 import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
@@ -100,17 +101,23 @@ public class ApiPostController {
 
     @PostMapping("/like")
     @PreAuthorize("hasAuthority('user:write')")
-    public ResponseEntity<ResultResponse> like(HttpSession session, @RequestBody VoteRequest voteRequest) {
+    public ResponseEntity<ResultResponse> like(@RequestBody VoteRequest voteRequest) {
         ResultResponse response = new ResultResponse(
-            voteService.like(session.getId(), voteRequest.getPostId()));
+            voteService.like(voteRequest.getPostId()));
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/dislike")
     @PreAuthorize("hasAuthority('user:write')")
-    public ResponseEntity<ResultResponse> dislike(HttpSession session, @RequestBody VoteRequest voteRequest) {
+    public ResponseEntity<ResultResponse> dislike(@RequestBody VoteRequest voteRequest) {
         ResultResponse response = new ResultResponse(
-                voteService.dislike(session.getId(), voteRequest.getPostId()));
+                voteService.dislike(voteRequest.getPostId()));
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<ResultResponse> createPost(@RequestBody PostRequest postRequest) {
+        return ResponseEntity.ok(postService.createPost(postRequest));
     }
 }

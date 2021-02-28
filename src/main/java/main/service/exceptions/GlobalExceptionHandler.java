@@ -20,6 +20,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(TagNotFoundException.class)
+    protected ResponseEntity<GlobalException> handleTagNotFoundException(TagNotFoundException ex) {
+        return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
     @Data
     @AllArgsConstructor
     private static class GlobalException {

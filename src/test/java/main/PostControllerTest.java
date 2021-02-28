@@ -1,10 +1,15 @@
 package main;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import main.api.request.ModerationRequest;
+import main.api.request.PostRequest;
 import main.controller.ApiPostController;
+import main.model.Post;
+import main.model.Tag;
+import main.model.TagToPost;
 import main.model.enums.ModerationStatus;
 import main.repository.PostRepository;
+import main.repository.TagRepository;
+import main.repository.TagToPostRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,13 +20,18 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import static main.service.TimeService.getTimestamp;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
@@ -37,6 +47,10 @@ public class PostControllerTest {
     private ObjectMapper objectMapper;
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private TagRepository tagRepository;
+    @Autowired
+    private TagToPostRepository tagToPostRepository;
 
 
     @Test
@@ -173,19 +187,6 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.posts[10]").doesNotExist());
     }
 
-    @Test
-    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void calendarNoQueryTest() throws Exception {
-        this.mockMvc.perform(get("/api/calendar"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.years", hasSize(2)))
-                .andExpect(jsonPath("$.years.[0]").value("2020"))
-                .andExpect(jsonPath("$.years.[1]").value("2021"))
-                .andExpect(jsonPath("$.posts", anEmptyMap()));
-    }
 
     @Test
     @WithUserDetails("anna@mail.ru")
@@ -326,7 +327,104 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.count").value("14"))
                 .andExpect(jsonPath("$.posts[0].id").value("37"))
                 .andExpect(jsonPath("$.posts[9].id").value("32"))
-                .andExpect(jsonPath("$.posts[10]").doesNotExist());;
+                .andExpect(jsonPath("$.posts[10]").doesNotExist());
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createPost() throws Exception {
+        List<String> tags = new ArrayList<>();
+        tags.add("F1");
+        tags.add("MOLOKO");
+        PostRequest request = new PostRequest(
+                12222222223L,
+                (byte) 1,
+                "start",
+                tags,
+                "test text TEXT text 1234567890 1234567890 1234567890 1234567890");
+        this.mockMvc.perform(post("/api/post")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.result").value("true"))
+                .andExpect(jsonPath("$.errors").doesNotExist());
+
+        List<Post> posts = postRepository.findAll();
+        assertEquals(1, posts.size());
+        assertEquals(request.getActive(), posts.get(0).getIsActive());
+        assertEquals(request.getTimestamp(), getTimestamp(posts.get(0).getTime()));
+        assertEquals(request.getText(), posts.get(0).getText());
+        assertEquals(request.getTitle(), posts.get(0).getTitle());
+        assertEquals(ModerationStatus.NEW, posts.get(0).getModerationStatus());
+        List<Tag> tagsResult = tagRepository.findAll();
+        assertEquals(2, tags.size());
+        assertEquals(tags.get(0), tagsResult.get(0).getName());
+        assertEquals(tags.get(1), tagsResult.get(1).getName());
+        List<TagToPost> tagsToPostResult = tagToPostRepository.findAll();
+        assertEquals(2, tagsToPostResult.size());
+        assertEquals(posts.get(0).getId(), tagsToPostResult.get(0).getPost().getId());
+        assertEquals(posts.get(0).getId(), tagsToPostResult.get(1).getPost().getId());
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createPostPastTime() throws Exception {
+        List<String> tags = new ArrayList<>();
+        tags.add("F1");
+        tags.add("MOLOKO");
+        PostRequest request = new PostRequest(
+                1222223L,
+                (byte) 1,
+                "start",
+                tags,
+                "test text TEXT text 1234567890 1234567890 1234567890 1234567890");
+        this.mockMvc.perform(post("/api/post")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.result").value("true"))
+                .andExpect(jsonPath("$.errors").doesNotExist());
+
+        List<Post> posts = postRepository.findAll();
+        assertEquals(1, posts.size());
+        assertEquals(Instant.now().getEpochSecond(), getTimestamp(posts.get(0).getTime()), 10);
+        assertEquals(request.getText(), posts.get(0).getText());
+
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void createPostError() throws Exception {
+        List<String> tags = new ArrayList<>();
+        tags.add("F1");
+        tags.add("MOLOKO");
+        PostRequest request = new PostRequest(
+                12222222223L,
+                (byte) 1,
+                "s",
+                tags,
+                "");
+        this.mockMvc.perform(post("/api/post")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.result").value("false"))
+                .andExpect(jsonPath("$.errors.title").value("Заголовок слишком короткий"))
+                .andExpect(jsonPath("$.errors.text").value("Поле текст не заполнено"));
+
+        assertEquals(0, postRepository.findAll().size());
     }
 }
 

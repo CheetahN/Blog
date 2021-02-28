@@ -4,13 +4,10 @@ import main.model.Post;
 import main.model.User;
 import main.model.Vote;
 import main.repository.PostRepository;
-import main.repository.UserRepository;
 import main.repository.VoteRepository;
-import main.service.AuthService;
 import main.service.UserService;
 import main.service.VoteService;
 import main.service.exceptions.PostNotFoundException;
-import main.service.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,20 +16,18 @@ import java.time.LocalDateTime;
 @Service
 public class VoteServiceImpl implements VoteService {
     private final VoteRepository voteRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
     private final PostRepository postRepository;
 
     @Autowired
-    public VoteServiceImpl(VoteRepository voteRepository, UserRepository userRepository, UserService userService, PostRepository postRepository) {
+    public VoteServiceImpl(VoteRepository voteRepository, UserService userService, PostRepository postRepository) {
         this.voteRepository = voteRepository;
-        this.userRepository = userRepository;
         this.userService = userService;
         this.postRepository = postRepository;
     }
 
     @Override
-    public boolean like(String sessionId, int postId) {
+    public boolean like(int postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
         User user = userService.getCurrentUser();
         Vote vote = voteRepository.findByPostAndUser(post, user);
@@ -41,12 +36,11 @@ public class VoteServiceImpl implements VoteService {
             vote.setPost(post);
             vote.setTime(LocalDateTime.now());
             vote.setUser(user);
-            vote.setValue((byte) 1);
         } else {
             if (vote.getValue() == 1)
                 return false;
-            vote.setValue((byte) 1);
         }
+        vote.setValue((byte) 1);
 
         try {
             voteRepository.saveAndFlush(vote);
@@ -58,7 +52,7 @@ public class VoteServiceImpl implements VoteService {
     }
 
     @Override
-    public boolean dislike(String sessionId, int postId) {
+    public boolean dislike(int postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
         User user = userService.getCurrentUser();
         Vote vote = voteRepository.findByPostAndUser(post, user);
@@ -67,12 +61,11 @@ public class VoteServiceImpl implements VoteService {
             vote.setPost(post);
             vote.setTime(LocalDateTime.now());
             vote.setUser(user);
-            vote.setValue((byte) -1);
         } else {
             if (vote.getValue() == -1)
                 return false;
-            vote.setValue((byte) -1);
         }
+        vote.setValue((byte) -1);
 
         try {
             voteRepository.saveAndFlush(vote);

@@ -1,5 +1,7 @@
 package main.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import main.model.enums.ModerationStatus;
 
@@ -9,20 +11,22 @@ import java.util.List;
 
 @Data
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "posts")
 public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
-    private int id;
+    private Integer id;
 
     @Column(name = "is_active", nullable = false)
     private byte isActive;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "moderation_status", columnDefinition = "enum('NEW', 'ACCEPTED', 'DECLINED') default 'NEW'", nullable = false)
-    private ModerationStatus moderationStatus = ModerationStatus.NEW;
+    private ModerationStatus moderationStatus;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "moderator_id")
@@ -49,4 +53,9 @@ public class Post {
 
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
     private List<Vote> votes;
+
+    public Post() {
+        viewCount = 0;
+        moderationStatus = ModerationStatus.NEW;
+    }
 }

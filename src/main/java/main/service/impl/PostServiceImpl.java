@@ -1,13 +1,18 @@
 package main.service.impl;
 
+import main.api.request.PostRequest;
 import main.api.response.*;
 import main.model.Post;
 import main.model.User;
 import main.model.enums.ModerationStatus;
-import main.repository.*;
+import main.repository.PostRepository;
+import main.repository.TagRepository;
+import main.repository.TagToPostRepository;
 import main.service.PostService;
+import main.service.TagService;
 import main.service.UserService;
 import main.service.exceptions.PostNotFoundException;
+import main.service.exceptions.TagNotFoundException;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,29 +22,32 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static main.service.TimeService.getLocalDateTime;
+import static main.service.TimeService.getTimestamp;
 
 @Service
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final TagToPostRepository tagToPostRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
+    private final TagService tagService;
 
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, UserRepository userRepository, UserService userService) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, UserService userService, TagService tagService) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.tagToPostRepository = tagToPostRepository;
-        this.userRepository = userRepository;
         this.userService = userService;
+        this.tagService = tagService;
     }
 
     @Override
@@ -81,7 +89,7 @@ public class PostServiceImpl implements PostService {
     //  search by tag
     @Override
     public PostListReponse getPostsByTag(int offset, int limit, String tag) {
-        List<Integer> tagToPostList = tagToPostRepository.findPostIdByTag(tagRepository.findByName(tag));
+        List<Integer> tagToPostList = tagToPostRepository.findPostIdByTag(tagRepository.findByName(tag).orElseThrow(() -> new TagNotFoundException(tag)));
         Pageable paging = PageRequest.of( offset / 10, limit);
         Page<Post> posts = postRepository.findByIdInList(tagToPostList, paging);
         return new PostListReponse(posts.getTotalElements(), getList(posts));
@@ -116,7 +124,7 @@ public class PostServiceImpl implements PostService {
                     .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
                     .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
                     .title(post.getTitle())
-                    .timestamp(post.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
+                    .timestamp(getTimestamp(post.getTime()))
                     .viewCount(post.getViewCount())
                     .user(post.getUser().getId(), post.getUser().getName())
                     .build();
@@ -140,7 +148,7 @@ public class PostServiceImpl implements PostService {
                     CommentDTO.builder()
                             .id(comment.getId())
                             .text(comment.getText())
-                            .timestamp(comment.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
+                            .timestamp(getTimestamp(comment.getTime()))
                             .user(comment.getUser().getId(), comment.getUser().getName(), comment.getUser().getPhoto())
                             .build()
             );
@@ -150,7 +158,7 @@ public class PostServiceImpl implements PostService {
         return PostExpandedResponse.builder()
                 .active(post.getIsActive() == 1)
                 .id(postId)
-                .timestamp(post.getTime().atZone(ZoneId.of("UTC")).toEpochSecond())
+                .timestamp(getTimestamp(post.getTime()))
                 .user(post.getUser().getId(), post.getUser().getName())
                 .title(post.getTitle())
                 .text(post.getText())
@@ -220,5 +228,36 @@ public class PostServiceImpl implements PostService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public ResultResponse createPost(PostRequest postRequest) {
+        long currentTime = Instant.now().getEpochSecond();
+        if (currentTime > postRequest.getTimestamp())
+            postRequest.setTimestamp(currentTime);
+        Map<String, String> errors = new HashMap<>();
+        if (postRequest.getText() == null || postRequest.getText().equals(""))
+            errors.put("text", "Поле текст не заполнено");
+        else if (postRequest.getText().length() < 50)
+            errors.put("text", "Текст публикации слишком короткий");
+        if (postRequest.getTitle() == null || postRequest.getTitle().equals(""))
+            errors.put("title", "Заголовок не установлен");
+        else if (postRequest.getTitle().length() < 3)
+            errors.put("title", "Заголовок слишком короткий");
+
+        if (errors.isEmpty()) {
+            Post post = Post.builder()
+                    .time(getLocalDateTime(postRequest.getTimestamp()))
+                    .user(userService.getCurrentUser())
+                    .isActive(postRequest.getActive())
+                    .text(postRequest.getText())
+                    .title(postRequest.getTitle())
+                    .moderationStatus(ModerationStatus.NEW)
+                    .build();
+            Post savedPost = postRepository.save(post);
+            postRequest.getTags().forEach(tag -> tagService.addTag(tag ,savedPost.getId()));
+            return new ResultResponse(true);
+        }
+        return new ResultResponse(false, errors);
     }
 }
