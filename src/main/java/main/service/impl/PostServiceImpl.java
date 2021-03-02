@@ -13,6 +13,7 @@ import main.service.TagService;
 import main.service.UserService;
 import main.service.exceptions.PostNotFoundException;
 import main.service.exceptions.TagNotFoundException;
+import org.dom4j.rule.Mode;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -232,20 +233,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ResultResponse createPost(PostRequest postRequest) {
-        long currentTime = Instant.now().getEpochSecond();
-        if (currentTime > postRequest.getTimestamp())
-            postRequest.setTimestamp(currentTime);
-        Map<String, String> errors = new HashMap<>();
-        if (postRequest.getText() == null || postRequest.getText().equals(""))
-            errors.put("text", "Поле текст не заполнено");
-        else if (postRequest.getText().length() < 50)
-            errors.put("text", "Текст публикации слишком короткий");
-        if (postRequest.getTitle() == null || postRequest.getTitle().equals(""))
-            errors.put("title", "Заголовок не установлен");
-        else if (postRequest.getTitle().length() < 3)
-            errors.put("title", "Заголовок слишком короткий");
+        Map<String, String> errors = checkTextTitleForPost(postRequest);
 
         if (errors.isEmpty()) {
+            long currentTime = Instant.now().getEpochSecond();
+            if (currentTime > postRequest.getTimestamp()) {
+                postRequest.setTimestamp(currentTime);
+            }
             Post post = Post.builder()
                     .time(getLocalDateTime(postRequest.getTimestamp()))
                     .user(userService.getCurrentUser())
@@ -259,5 +253,44 @@ public class PostServiceImpl implements PostService {
             return new ResultResponse(true);
         }
         return new ResultResponse(false, errors);
+    }
+
+    @Override
+    public ResultResponse changePost(PostRequest postRequest, Integer id) {
+
+        Map<String, String> errors = checkTextTitleForPost(postRequest);
+
+        if (errors.isEmpty()) {
+            long currentTime = Instant.now().getEpochSecond();
+            if (currentTime > postRequest.getTimestamp()) {
+                postRequest.setTimestamp(currentTime);
+            }
+            Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
+            post.setTime(getLocalDateTime(postRequest.getTimestamp()));
+            post.setIsActive(postRequest.getActive());
+            post.setText(postRequest.getText());
+            post.setTitle(postRequest.getTitle());
+            if (userService.getCurrentUser().getIsModerator() == 0) {
+                post.setModerationStatus(ModerationStatus.NEW);
+            }
+            Post savedPost = postRepository.save(post);
+            tagService.removeTagsFromPost(id);
+            postRequest.getTags().forEach(tag -> tagService.addTag(tag ,savedPost.getId()));
+            return new ResultResponse(true);
+        }
+        return new ResultResponse(false, errors);
+    }
+
+    private Map<String, String> checkTextTitleForPost(PostRequest postRequest) {
+        Map<String, String> errors = new HashMap<>();
+        if (postRequest.getText() == null || postRequest.getText().equals(""))
+            errors.put("text", "Поле текст не заполнено");
+        else if (postRequest.getText().length() < 50)
+            errors.put("text", "Текст публикации слишком короткий");
+        if (postRequest.getTitle() == null || postRequest.getTitle().equals(""))
+            errors.put("title", "Заголовок не установлен");
+        else if (postRequest.getTitle().length() < 3)
+            errors.put("title", "Заголовок слишком короткий");
+        return errors;
     }
 }

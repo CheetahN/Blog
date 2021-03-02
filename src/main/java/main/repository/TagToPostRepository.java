@@ -6,6 +6,7 @@ import main.model.TagToPost;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,4 +20,7 @@ public interface TagToPostRepository extends JpaRepository<TagToPost, Integer> {
 
     @Query("select T.tag.name, count(*) from #{#entityName} T where T.post.isActive = 1 and T.post.moderationStatus = 'ACCEPTED' and T.post.time < CURRENT_TIME() group by T.tag.name")
     public List<Object[]> countAggregatedTags();
+
+    @Transactional
+    public void deleteByPost(Post post);
 }

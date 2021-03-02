@@ -25,14 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static main.service.TimeService.getTimestamp;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -348,6 +348,7 @@ public class PostControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.result").value("true"))
@@ -361,7 +362,7 @@ public class PostControllerTest {
         assertEquals(request.getTitle(), posts.get(0).getTitle());
         assertEquals(ModerationStatus.NEW, posts.get(0).getModerationStatus());
         List<Tag> tagsResult = tagRepository.findAll();
-        assertEquals(2, tags.size());
+        assertEquals(2, tagsResult.size());
         assertEquals(tags.get(0), tagsResult.get(0).getName());
         assertEquals(tags.get(1), tagsResult.get(1).getName());
         List<TagToPost> tagsToPostResult = tagToPostRepository.findAll();
@@ -388,6 +389,7 @@ public class PostControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.result").value("true"))
@@ -397,7 +399,6 @@ public class PostControllerTest {
         assertEquals(1, posts.size());
         assertEquals(Instant.now().getEpochSecond(), getTimestamp(posts.get(0).getTime()), 10);
         assertEquals(request.getText(), posts.get(0).getText());
-
     }
 
     @Test
@@ -418,6 +419,7 @@ public class PostControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.result").value("false"))
@@ -425,6 +427,76 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.errors.text").value("Поле текст не заполнено"));
 
         assertEquals(0, postRepository.findAll().size());
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void changePostError() throws Exception {
+        List<String> tags = new ArrayList<>();
+        tags.add("F1");
+        tags.add("MOLOKO");
+        PostRequest request = new PostRequest(
+                12222222223L,
+                (byte) 1,
+                "s",
+                tags,
+                "");
+        this.mockMvc.perform(put("/api/post/42")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(authenticated())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.result").value("false"))
+                .andExpect(jsonPath("$.errors.title").value("Заголовок слишком короткий"))
+                .andExpect(jsonPath("$.errors.text").value("Поле текст не заполнено"));
+
+        assertEquals(1, postRepository.findAll().size());
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void changePost() throws Exception {
+        List<String> tags = new ArrayList<>();
+        tags.add("F1");
+        tags.add("MOLOKO");
+        PostRequest request = new PostRequest(
+                12222222223L,
+                (byte) 1,
+                "start",
+                tags,
+                "test text TEXT text 1234567890 1234567890 1234567890 1234567890");
+        this.mockMvc.perform(put("/api/post/42")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(authenticated())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.result").value("true"))
+                .andExpect(jsonPath("$.errors").doesNotExist());
+
+        List<Post> posts = postRepository.findAll();
+        assertEquals(1, posts.size());
+        assertEquals(request.getActive(), posts.get(0).getIsActive());
+        assertEquals(request.getTimestamp(), getTimestamp(posts.get(0).getTime()));
+        assertEquals(request.getText(), posts.get(0).getText());
+        assertEquals(request.getTitle(), posts.get(0).getTitle());
+        assertEquals(ModerationStatus.NEW, posts.get(0).getModerationStatus());
+        List<Tag> tagsResult = tagRepository.findAll();
+        tagsResult.forEach(System.out::println);
+        assertEquals(3, tagsResult.size());
+        assertEquals(tags.get(0), tagsResult.get(1).getName());
+        assertEquals(tags.get(1), tagsResult.get(2).getName());
+        List<TagToPost> tagsToPostResult = tagToPostRepository.findAll();
+        assertEquals(2, tagsToPostResult.size());
+        assertEquals(posts.get(0).getId(), tagsToPostResult.get(0).getPost().getId());
+        assertEquals(posts.get(0).getId(), tagsToPostResult.get(1).getPost().getId());
     }
 }
 

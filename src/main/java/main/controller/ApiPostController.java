@@ -120,4 +120,10 @@ public class ApiPostController {
     public ResponseEntity<ResultResponse> createPost(@RequestBody PostRequest postRequest) {
         return ResponseEntity.ok(postService.createPost(postRequest));
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<ResultResponse> changePost(@RequestBody PostRequest postRequest, @PathVariable Integer id) {
+        return ResponseEntity.ok(postService.changePost(postRequest, id));
+    }
 }

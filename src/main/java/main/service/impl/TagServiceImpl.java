@@ -54,12 +54,16 @@ public class TagServiceImpl implements TagService {
         return new TagResponse(response);
     }
 
-    public void addTag(String tagName, Integer post){
+    public void addTag(String tagName, Integer postId){
         Tag tag = tagRepository.findByName(tagName).orElse(new Tag());
         if (tag.getName() == null) {
             tag.setName(tagName);
             tag = tagRepository.save(tag);
         }
-        tagToPostRepository.save(new TagToPost(postRepository.getOne(post), tag));
+        tagToPostRepository.save(new TagToPost(postRepository.getOne(postId), tag));
+    }
+
+    public void removeTagsFromPost(Integer postId) {
+        tagToPostRepository.deleteByPost(postRepository.getOne(postId));
     }
 }

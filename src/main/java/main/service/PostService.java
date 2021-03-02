@@ -56,4 +56,6 @@ public interface PostService {
     public boolean moderate(int postId, String decision);
 
     public ResultResponse createPost(PostRequest postRequest);
+
+    public ResultResponse changePost(PostRequest postRequest, Integer id);
 }
