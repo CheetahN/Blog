@@ -18,3 +18,4 @@ INSERT INTO posts (id, is_active, moderation_status, time, title, view_count, mo
 INSERT INTO posts (id, is_active, moderation_status, time, title, view_count, moderator_id, user_id, text) VALUES(40, 1, 'DECLINED', '2020-02-29 04:05:52.008525', "declined 14", 0, 105, 101, "some text" );
 INSERT INTO posts (id, is_active, moderation_status, time, title, view_count, moderator_id, user_id, text) VALUES(41, 1, 'DECLINED', '2020-02-29 05:05:52.008525', "declined 15", 15, 105, 101, "some text" );
 INSERT INTO posts (id, is_active, moderation_status, time, title, view_count, moderator_id, user_id, text) VALUES(42, 1, 'ACCEPTED', '2020-02-29 06:05:52.008525', "Accept ME", 15, 105, 101, "очень очень хороший пост! Обо всем и ни о чем" );
+ALTER TABLE posts AUTO_INCREMENT = 50;

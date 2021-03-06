@@ -3,6 +3,7 @@ package main.controller;
 import main.api.request.ModerationRequest;
 import main.api.request.SettingsRequest;
 import main.api.response.*;
+import main.service.FileService;
 import main.service.PostService;
 import main.service.SettingsService;
 import main.service.TagService;
@@ -10,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -19,12 +23,14 @@ public class ApiGeneralController {
     private final SettingsService settingsService;
     private final TagService tagService;
     private final PostService postService;
+    private final FileService fileService;
 
-    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService, PostService postService) {
+    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService, PostService postService, FileService fileService) {
         this.initResponse = initResponse;
         this.settingsService = settingsService;
         this.tagService = tagService;
         this.postService = postService;
+        this.fileService = fileService;
     }
     @GetMapping("/init")
     public ResponseEntity<InitResponse> init() {
@@ -62,5 +68,13 @@ public class ApiGeneralController {
     public ResponseEntity<CalendarResponse> getCalendar(Integer year) {
         CalendarResponse response = postService.getCalendar(year);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/image")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<?> submitImage(@RequestParam MultipartFile image) {
+        Object result = fileService.uploadFile(image);
+        if (result instanceof String) return ResponseEntity.ok((String) result);
+        return ResponseEntity.ok(new ResultResponse(false, (Map<String,String>) result));
     }
 }

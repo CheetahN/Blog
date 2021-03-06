@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
-
 @RestController
 @RequestMapping("/api/post")
 public class ApiPostController {
@@ -79,7 +77,6 @@ public class ApiPostController {
     @GetMapping("/moderation")
     @PreAuthorize("hasAuthority('user:moderate')")
     public ResponseEntity<PostListReponse> getPostsForModeration(
-            HttpSession session,
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(name = "status", required = false) String status) {
@@ -90,7 +87,6 @@ public class ApiPostController {
     @GetMapping("/my")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<PostListReponse> getPostsMy(
-            HttpSession session,
             @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
             @RequestParam(name = "limit", required = false, defaultValue = "10") int limit,
             @RequestParam(name = "status", required = false) String status) {

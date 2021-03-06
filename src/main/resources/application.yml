@@ -4,7 +4,7 @@ spring.datasource.password: password
 spring.jpa.hibernate.ddl-auto: validate
 spring.jpa.show-sql: false
 
-blog.title: DevPub
+blog.title: Deep Prank
 blog.subtitle: Trash Book
 blog.phone: +77776543210
 blog.email: efee13413fs@gundex.hru
@@ -20,3 +20,10 @@ blog.captcha.captcha.width: 100
 blog.captcha.captcha.length: 6
 
 spring.flyway.enabled: true
+
+# uploading files
+spring.servlet.multipart.max-file-size: 1MB
+spring.servlet.multipart.max-request-size: 1MB
+spring.servlet.multipart.enabled: true
+spring.servlet.multipart.location: ${java.io.tmpdir}
+upload.path: D:\junk\img

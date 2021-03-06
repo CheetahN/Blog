@@ -3,6 +3,7 @@ INSERT INTO tags (id, name) VALUES(2, "Alcohol" );
 INSERT INTO tags (id, name) VALUES(3, "Chaos" );
 INSERT INTO tags (id, name) VALUES(4, "F1" );
 INSERT INTO tags (id, name) VALUES(5, "Drama" );
+ALTER TABLE tags AUTO_INCREMENT = 10;
 INSERT INTO tag2post (id, post_id, tag_id) VALUES(1, 10, 1);
 INSERT INTO tag2post (id, post_id, tag_id) VALUES(2, 7, 1);
 INSERT INTO tag2post (id, post_id, tag_id) VALUES(3, 9, 1);
@@ -41,4 +42,5 @@ INSERT INTO tag2post (id, post_id, tag_id) VALUES(35, 22, 4);
 INSERT INTO tag2post (id, post_id, tag_id) VALUES(36, 6, 4);
 INSERT INTO tag2post (id, post_id, tag_id) VALUES(37, 3, 5);
 INSERT INTO tag2post (id, post_id, tag_id) VALUES(38, 12, 5);
+ALTER TABLE tag2post AUTO_INCREMENT = 50;
 

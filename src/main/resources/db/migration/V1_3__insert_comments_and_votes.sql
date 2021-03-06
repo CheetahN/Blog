@@ -9,6 +9,7 @@ INSERT INTO post_votes (id, user_id, post_id, time, value) VALUES(8, 108, 5, '20
 INSERT INTO post_votes (id, user_id, post_id, time, value) VALUES(9, 108, 3, '2020-10-26 00:05:52.008525', "-1");
 INSERT INTO post_votes (id, user_id, post_id, time, value) VALUES(10, 108, 9, '2020-10-26 00:05:52.008525', "1");
 INSERT INTO post_votes (id, user_id, post_id, time, value) VALUES(11, 105, 3, '2020-10-26 00:05:52.008525', "1");
+ALTER TABLE post_votes AUTO_INCREMENT = 20;
 
 
 INSERT INTO post_comments (id, user_id, post_id, time, text) VALUES(1, 105, 3, '2020-10-27 00:05:52.008525', "commento");
@@ -17,3 +18,4 @@ INSERT INTO post_comments (id, user_id, post_id, time, parent_id, text) VALUES(3
 INSERT INTO post_comments (id, user_id, post_id, time, parent_id, text) VALUES(4, 101, 3, '2020-10-29 00:05:52.008525', 1, "hey");
 INSERT INTO post_comments (id, user_id, post_id, time, text) VALUES(5, 106, 10, '2020-10-27 00:05:52.008525', "how are you doing?");
 INSERT INTO post_comments (id, user_id, post_id, time, parent_id, text) VALUES(6, 101, 10, '2020-10-29 00:05:52.008525', 5, "TROLOLO-LOLO-LOLOLO-LOLOLO");
+ALTER TABLE post_comments AUTO_INCREMENT = 10;

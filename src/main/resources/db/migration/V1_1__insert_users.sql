@@ -6,3 +6,4 @@ INSERT INTO users (id, name, is_moderator, reg_time, email, password, photo) VAL
 INSERT INTO users (id, name, is_moderator, reg_time, email, password, photo) VALUES(106, "Polina", 0, '2020-10-21 00:05:52.008525', "Polina@mail.ru", "$2y$12$m.6GN6FdZmVVIFTngGr3t.AJOnZ9lsTzYR229W9UFfXms8HaZVP6u", "https://99px.ru/sstorage/1/2010/10/image_10810101707532237945.png");
 INSERT INTO users (id, name, is_moderator, reg_time, email, password) VALUES(107, "Gora", 0, '2020-10-21 00:05:52.008525', "G@mail.ru", "123");
 INSERT INTO users (id, name, is_moderator, reg_time, email, password) VALUES(108, "Dima", 0, '2020-10-21 00:05:52.008525', "Dima@mail.ru", "123");
+ALTER TABLE posts AUTO_INCREMENT = 120;
