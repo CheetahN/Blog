@@ -14,17 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -218,5 +219,22 @@ public class GeneralControllerTest {
                 .andExpect(jsonPath("$.years.[0]").value("2020"))
                 .andExpect(jsonPath("$.years.[1]").value("2021"))
                 .andExpect(jsonPath("$.posts", anEmptyMap()));
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void uploadImageTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile("image", "test.png","image/jpeg", "Spring Framework".getBytes());
+        MvcResult result = this.mockMvc.perform(multipart("/api/image")
+                .file(multipartFile))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.valueOf("text/plain;charset=UTF-8")))
+                .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        assertTrue(content.matches("/upload/\\w{2}/\\w{2}/\\w{2}/test.png"));
     }
 }
