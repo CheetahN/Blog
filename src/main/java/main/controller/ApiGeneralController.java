@@ -1,5 +1,6 @@
 package main.controller;
 
+import main.api.request.CommentRequest;
 import main.api.request.ModerationRequest;
 import main.api.request.SettingsRequest;
 import main.api.response.*;
@@ -43,13 +44,13 @@ public class ApiGeneralController {
     }
 
     @GetMapping("/tag")
-    public ResponseEntity<TagResponse>  getTag(@RequestParam(name = "query", required = false) String query) {
+    public ResponseEntity<TagListResponse>  getTag(@RequestParam(name = "query", required = false) String query) {
         return ResponseEntity.ok(tagService.getTag(query));
     }
 
     @PutMapping("/settings")
     @PreAuthorize("hasAuthority('user:moderate')")
-    public ResponseEntity changeSettings(@RequestBody SettingsRequest settingsRequest) {
+    public ResponseEntity<?> changeSettings(@RequestBody SettingsRequest settingsRequest) {
         if (settingsService.setGlobalSettings(settingsRequest))
             return ResponseEntity.ok().build();
         else
@@ -76,5 +77,11 @@ public class ApiGeneralController {
         Object result = fileService.uploadFile(image);
         if (result instanceof String) return ResponseEntity.ok((String) result);
         return ResponseEntity.ok(new ResultResponse(false, (Map<String,String>) result));
+    }
+
+    @PostMapping("/comment")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<?> addComment(@RequestBody CommentRequest commentRequest) {
+        return ResponseEntity.ok(new IdResponse(postService.addComment(commentRequest)));
     }
 }

@@ -1,19 +1,20 @@
 package main.service.impl;
 
+import main.api.request.CommentRequest;
 import main.api.request.PostRequest;
 import main.api.response.*;
+import main.model.Comment;
 import main.model.Post;
 import main.model.User;
 import main.model.enums.ModerationStatus;
+import main.repository.CommentRepository;
 import main.repository.PostRepository;
 import main.repository.TagRepository;
 import main.repository.TagToPostRepository;
 import main.service.PostService;
 import main.service.TagService;
 import main.service.UserService;
-import main.service.exceptions.PostNotFoundException;
-import main.service.exceptions.TagNotFoundException;
-import org.dom4j.rule.Mode;
+import main.service.exceptions.*;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,15 +41,17 @@ public class PostServiceImpl implements PostService {
     private final TagToPostRepository tagToPostRepository;
     private final UserService userService;
     private final TagService tagService;
+    private final CommentRepository commentRepository;
 
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, UserService userService, TagService tagService) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, UserService userService, TagService tagService, CommentRepository commentRepository) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.tagToPostRepository = tagToPostRepository;
         this.userService = userService;
         this.tagService = tagService;
+        this.commentRepository = commentRepository;
     }
 
     @Override
@@ -143,10 +146,10 @@ public class PostServiceImpl implements PostService {
             postRepository.updateIncrementViewCount(postId);
         }
 
-        List<CommentDTO> commentsDTO = new ArrayList<>();
+        List<CommentResponse> commentsDTO = new ArrayList<>();
         post.getComments().forEach(comment -> {
             commentsDTO.add(
-                    CommentDTO.builder()
+                    CommentResponse.builder()
                             .id(comment.getId())
                             .text(comment.getText())
                             .timestamp(getTimestamp(comment.getTime()))
@@ -279,6 +282,36 @@ public class PostServiceImpl implements PostService {
             return new ResultResponse(true);
         }
         return new ResultResponse(false, errors);
+    }
+
+    @Override
+    public Integer addComment(CommentRequest commentRequest) {
+        Integer id = null;
+        Map<String, String> errors = new HashMap<>();
+        if (commentRequest.getParentId() != null && !commentRequest.getParentId().isEmpty()) {
+            id = Integer.valueOf(commentRequest.getParentId());
+            if (commentRepository.findById(id).isEmpty()) {
+                errors.put("comment", "parental comment not found in database: " + id);
+            }
+        }
+        if (postRepository.findById(commentRequest.getPostId()).isEmpty()) {
+            errors.put("post", "post not found in database: " + commentRequest.getPostId());
+        }
+
+        if (commentRequest.getText() == null || commentRequest.getText().length()<3) {
+            errors.put("text", "Текст комментария не задан или слишком короткий");
+        }
+        if (!errors.isEmpty()) {
+            throw new BadRequestException(errors);
+        }
+        Comment comment = new Comment();
+        comment.setText(commentRequest.getText());
+        comment.setPost(postRepository.getOne(commentRequest.getPostId()));
+        comment.setTime(LocalDateTime.now());
+        comment.setUser(userService.getCurrentUser());
+        if (id != null) comment.setComment(commentRepository.getOne(id));
+        Comment savedComment = commentRepository.save(comment);
+        return savedComment.getId();
     }
 
     private Map<String, String> checkTextTitleForPost(PostRequest postRequest) {

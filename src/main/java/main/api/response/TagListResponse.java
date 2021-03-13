@@ -3,9 +3,10 @@ package main.api.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
-public class TagDTO {
-    private String name;
-    private float weight;
+public class TagListResponse {
+    List<TagResponse> tags;
 }

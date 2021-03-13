@@ -1,5 +1,6 @@
 package main.service;
 
+import main.api.request.CommentRequest;
 import main.api.request.PostRequest;
 import main.api.response.CalendarResponse;
 import main.api.response.PostExpandedResponse;
@@ -58,4 +59,6 @@ public interface PostService {
     public ResultResponse createPost(PostRequest postRequest);
 
     public ResultResponse changePost(PostRequest postRequest, Integer id);
+
+    public Integer addComment(CommentRequest commentRequest);
 }

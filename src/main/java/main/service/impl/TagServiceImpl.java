@@ -1,7 +1,7 @@
 package main.service.impl;
 
-import main.api.response.TagDTO;
 import main.api.response.TagResponse;
+import main.api.response.TagListResponse;
 import main.model.Tag;
 import main.model.TagToPost;
 import main.repository.PostRepository;
@@ -30,8 +30,8 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public TagResponse getTag(String query) {
-        List<TagDTO> response = new ArrayList<>();
+    public TagListResponse getTag(String query) {
+        List<TagResponse> response = new ArrayList<>();
         List<Object[]> pairs = tagToPostRepository.countAggregatedTags();
         long max = 0;
         for (Object[]  pair: pairs ) {
@@ -48,10 +48,10 @@ public class TagServiceImpl implements TagService {
 
         pairs.forEach(pair -> {
             if (((String) pair[0]).startsWith(finalQuery))
-                response.add(new TagDTO((String) pair[0], ((Long) pair[1]).floatValue() / finalMax));
+                response.add(new TagResponse((String) pair[0], ((Long) pair[1]).floatValue() / finalMax));
         });
 
-        return new TagResponse(response);
+        return new TagListResponse(response);
     }
 
     public void addTag(String tagName, Integer postId){

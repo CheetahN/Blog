@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class CommentDTO {
+public class CommentResponse {
     private int id;
     private long timestamp;
     private String text;
@@ -20,8 +20,8 @@ public class CommentDTO {
         private String photo;
     }
 
-    public static class CommentDTOBuilder {
-        public CommentDTOBuilder user(int id, String name, String photo) {
+    public static class CommentResponseBuilder {
+        public CommentResponseBuilder user(int id, String name, String photo) {
             this.user = new CommentUser(id, name, photo);
             return this;
         }

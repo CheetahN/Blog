@@ -20,16 +20,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    protected ResponseEntity<ResultResponse> handleBadRequestException(BadRequestException ex) {
+        return new ResponseEntity<>(new ResultResponse(false, ex.getErrors()), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     protected ResponseEntity<GlobalException> handleUserNotFoundException(UserNotFoundException ex) {
         return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
-    protected ResponseEntity<ResultResponse> handleTagNotFoundException() {
+    protected ResponseEntity<ResultResponse> handleImageSizeLimitException() {
         Map<String, String> errors = new HashMap<>();
         errors.put("image", "Размер файла превышает допустимый размер");
-        return new ResponseEntity<>(new ResultResponse(false, errors), HttpStatus.OK);
+        return new ResponseEntity<>(new ResultResponse(false, errors), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TagNotFoundException.class)
@@ -42,4 +47,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static class GlobalException {
         private String message;
     }
+
 }
