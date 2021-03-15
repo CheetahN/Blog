@@ -74,9 +74,7 @@ public class ApiGeneralController {
     @PostMapping("/image")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<?> submitImage(@RequestParam MultipartFile image) {
-        Object result = fileService.uploadFile(image);
-        if (result instanceof String) return ResponseEntity.ok((String) result);
-        return ResponseEntity.ok(new ResultResponse(false, (Map<String,String>) result));
+        return ResponseEntity.ok(fileService.uploadFile(image));
     }
 
     @PostMapping("/comment")

@@ -237,4 +237,17 @@ public class GeneralControllerTest {
         String content = result.getResponse().getContentAsString();
         assertTrue(content.matches("/upload/\\w{2}/\\w{2}/\\w{2}/test.png"));
     }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void uploadImageErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile("image", "test.gif","image/jpeg", "Spring Framework".getBytes());
+        this.mockMvc.perform(multipart("/api/image")
+                .file(multipartFile))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors.image").value("неверный формат файла"));
+    }
 }

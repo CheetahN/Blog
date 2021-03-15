@@ -146,9 +146,9 @@ public class PostServiceImpl implements PostService {
             postRepository.updateIncrementViewCount(postId);
         }
 
-        List<CommentResponse> commentsDTO = new ArrayList<>();
+        List<CommentResponse> commentResponses = new ArrayList<>();
         post.getComments().forEach(comment -> {
-            commentsDTO.add(
+            commentResponses.add(
                     CommentResponse.builder()
                             .id(comment.getId())
                             .text(comment.getText())
@@ -170,7 +170,7 @@ public class PostServiceImpl implements PostService {
                 .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
                 .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
                 .tags(tagToPostRepository.findTagsByPost(post))
-                .comments(commentsDTO)
+                .comments(commentResponses)
                 .build();
     }
 

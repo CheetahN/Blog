@@ -1,12 +1,15 @@
 package main;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import main.api.request.CommentRequest;
 import main.api.request.PostRequest;
 import main.controller.ApiPostController;
+import main.model.Comment;
 import main.model.Post;
 import main.model.Tag;
 import main.model.TagToPost;
 import main.model.enums.ModerationStatus;
+import main.repository.CommentRepository;
 import main.repository.PostRepository;
 import main.repository.TagRepository;
 import main.repository.TagToPostRepository;
@@ -26,7 +29,7 @@ import java.util.List;
 
 import static main.service.TimeService.getTimestamp;
 import static org.hamcrest.Matchers.startsWith;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,6 +54,8 @@ public class PostControllerTest {
     private TagRepository tagRepository;
     @Autowired
     private TagToPostRepository tagToPostRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
 
     @Test
@@ -497,6 +502,49 @@ public class PostControllerTest {
         assertEquals(2, tagsToPostResult.size());
         assertEquals(posts.get(0).getId(), tagsToPostResult.get(0).getPost().getId());
         assertEquals(posts.get(0).getId(), tagsToPostResult.get(1).getPost().getId());
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addCommentToPostTest() throws Exception {
+        CommentRequest request = new CommentRequest();
+        request.setPostId(42);
+        request.setText("krutota!");
+        this.mockMvc.perform(post("/api/comment/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(authenticated())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.errors").doesNotExist());
+
+        Comment comment = commentRepository.findAll().get(0);
+        assertEquals(request.getText(), comment.getText());
+        assertEquals(request.getPostId(), comment.getPost().getId());
+        assertNull(comment.getComment());
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addCommentToPostErrorTest() throws Exception {
+        CommentRequest request = new CommentRequest();
+        request.setPostId(42);
+        request.setText("kr");
+        this.mockMvc.perform(post("/api/comment/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(authenticated())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors.text").value("Текст комментария не задан или слишком короткий"));
+
+        assertTrue(commentRepository.findAll().isEmpty());
     }
 }
 
