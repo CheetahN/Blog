@@ -1,10 +1,12 @@
 package main.controller;
 
 import main.api.request.LoginRequest;
+import main.api.request.PasswordRequest;
 import main.api.request.RegistrationRequest;
 import main.api.response.AuthResultResponse;
 import main.api.response.CaptchaResponse;
 import main.api.response.RegistrationResponse;
+import main.api.response.ResultResponse;
 import main.repository.UserRepository;
 import main.service.AuthService;
 import org.springframework.http.ResponseEntity;
@@ -55,11 +57,16 @@ public class ApiAuthController {
     }
 
     @PostMapping("register")
-    public ResponseEntity<RegistrationResponse> register(@RequestBody RegistrationRequest request) {
-        RegistrationResponse response = authService.register(request);
+    public ResponseEntity<ResultResponse> register(@RequestBody RegistrationRequest request) {
+        ResultResponse response = authService.register(request);
         if (response == null)       // registration not allowed
             return ResponseEntity.notFound().build();
         else
             return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("password")
+    public ResponseEntity<ResultResponse> changePassword(@RequestBody PasswordRequest request) {
+            return ResponseEntity.ok(authService.changePwd(request));
     }
 }

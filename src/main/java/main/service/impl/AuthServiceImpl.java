@@ -3,11 +3,10 @@ package main.service.impl;
 import com.github.cage.Cage;
 import com.github.cage.image.Painter;
 import com.github.cage.token.RandomTokenGenerator;
+import main.api.request.PasswordRequest;
 import main.api.request.RegistrationRequest;
-import main.api.response.AuthResultResponse;
-import main.api.response.CaptchaResponse;
-import main.api.response.RegistrationResponse;
-import main.api.response.UserResponse;
+import main.api.response.*;
+import main.config.SecurityConfig;
 import main.model.CaptchaCode;
 import main.model.User;
 import main.model.enums.GlobalSettingCode;
@@ -18,6 +17,8 @@ import main.repository.PostRepository;
 import main.repository.SettingsRepository;
 import main.repository.UserRepository;
 import main.service.AuthService;
+import main.service.UserService;
+import main.service.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -34,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Primary
@@ -69,7 +71,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-
     @Override
     public AuthResultResponse logout(HttpServletRequest request) {
         new SecurityContextLogoutHandler().logout(request, null, null);
@@ -82,8 +83,8 @@ public class AuthServiceImpl implements AuthService {
         authResultResponse.setResult(false);
         org.springframework.security.core.userdetails.User user;
         try {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
             user = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
         } catch (Exception e) {
@@ -92,8 +93,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (userRepository.findByEmail(user.getUsername()).isEmpty()) {
             return authResultResponse;
-        }
-        else {
+        } else {
             User currentUser = userRepository.findByEmail(user.getUsername()).get();
             authResultResponse.setResult(true);
             authResultResponse.setUser(convertUserToUserResponse(currentUser));
@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
     public CaptchaResponse getCaptcha() {
         captchaRepository.deleteByTimeBefore(LocalDateTime.now().minusMinutes(captchaLifetime));
 
-        Painter painter = new Painter(captchaWidth, captchaHeight, null,  Painter.Quality.DEFAULT, null, null);
+        Painter painter = new Painter(captchaWidth, captchaHeight, null, Painter.Quality.DEFAULT, null, null);
         Cage cage = new Cage(painter, null, null, null,
                 Cage.DEFAULT_COMPRESS_RATIO, new RandomTokenGenerator(null, captchaLength), null);
         String code = cage.getTokenGenerator().next();
@@ -136,44 +136,66 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public RegistrationResponse register(RegistrationRequest request) {
+    public ResultResponse register(RegistrationRequest request) {
         if (settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE).getValue() == GlobalSettingValue.NO)
             return null;
         String LATIN = "^\\w{3,}$";
         String CYRILLIC = "^[а-яА-Я0-9_]{3,}$";
-        boolean result = true;
         Map<String, String> errors = new HashMap<>();
-        RegistrationResponse response = new RegistrationResponse();
 
         if (!(request.getName().matches(LATIN) || request.getName().matches(CYRILLIC))) {
-            result = false;
             errors.put("name", "Имя указано неверно");
         }
 
-        if (userRepository.findByEmail(request.getEmail()) != null) {
-            result = false;
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             errors.put("email", "Этот e-mail уже зарегистрирован");
         }
 
         CaptchaCode captchaCode = captchaRepository.findBySecretCode(request.getCaptchaSecret());
         if (captchaCode == null || !captchaCode.getCode().equals(request.getCaptcha())) {
-            result = false;
             errors.put("captcha", "Код с картинки введён неверно");
         }
 
-        response.setResult(result);
-
-        if (result) {
+        if (errors.isEmpty()) {
             User user = new User();
             user.setName(request.getName());
             user.setEmail(request.getEmail());
-            user.setPassword(request.getPassword());
+            user.setPassword(SecurityConfig.passwordEncoder().encode(request.getPassword()));
             user.setRegTime(LocalDateTime.now());
             user.setIsModerator((byte) 0);
             userRepository.save(user);
         } else {
-            response.setErrors(errors);
+            throw new BadRequestException(errors);
         }
-        return response;
+        return new ResultResponse(true);
+    }
+
+    @Override
+    public ResultResponse changePwd(PasswordRequest request) {
+        Map<String, String> errors = new HashMap<>();
+
+        if (request.getPassword().length() <= 6) {
+            errors.put("password", "Пароль короче 6-ти символов");
+        }
+
+        CaptchaCode captchaCode = captchaRepository.findBySecretCode(request.getCaptchaSecret());
+        if (captchaCode == null || !captchaCode.getCode().equals(request.getCaptcha())) {
+            errors.put("captcha", "Код с картинки введён неверно");
+        }
+
+        Optional<User> optionalUser = userRepository.findByCode(request.getCode());
+        if (optionalUser.isEmpty()) {
+            errors.put("code", "Ссылка для восстановления пароля устарела. <a href=\"/auth/restore\">Запросить ссылку снова</a>");
+        }
+
+        if (errors.isEmpty()) {
+            User user = optionalUser.get();
+            user.setCode(null);
+            user.setPassword(SecurityConfig.passwordEncoder().encode(request.getPassword()));
+            userRepository.save(user);
+        } else {
+            throw new BadRequestException(errors);
+        }
+        return new ResultResponse(true);
     }
 }

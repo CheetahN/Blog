@@ -1,10 +1,8 @@
 package main.service;
 
+import main.api.request.PasswordRequest;
 import main.api.request.RegistrationRequest;
-import main.api.response.AuthResultResponse;
-import main.api.response.CaptchaResponse;
-import main.api.response.RegistrationResponse;
-import main.api.response.UserResponse;
+import main.api.response.*;
 import main.model.User;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +19,9 @@ public interface AuthService {
 
     public CaptchaResponse getCaptcha();
 
-    public RegistrationResponse register(RegistrationRequest request);
+    public ResultResponse register(RegistrationRequest request);
 
     public UserResponse convertUserToUserResponse(User user);
 
+    public ResultResponse changePwd(PasswordRequest request);
 }
