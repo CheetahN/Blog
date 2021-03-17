@@ -1,5 +1,6 @@
 package main.service;
 
+import main.api.request.EmailRequest;
 import main.api.request.PasswordRequest;
 import main.api.request.RegistrationRequest;
 import main.api.response.*;
@@ -24,4 +25,6 @@ public interface AuthService {
     public UserResponse convertUserToUserResponse(User user);
 
     public ResultResponse changePwd(PasswordRequest request);
+
+    public ResultResponse sendRestorationEmail(EmailRequest request);
 }

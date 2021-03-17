@@ -1,11 +1,11 @@
 package main.controller;
 
+import main.api.request.EmailRequest;
 import main.api.request.LoginRequest;
 import main.api.request.PasswordRequest;
 import main.api.request.RegistrationRequest;
 import main.api.response.AuthResultResponse;
 import main.api.response.CaptchaResponse;
-import main.api.response.RegistrationResponse;
 import main.api.response.ResultResponse;
 import main.repository.UserRepository;
 import main.service.AuthService;
@@ -68,5 +68,10 @@ public class ApiAuthController {
     @PostMapping("password")
     public ResponseEntity<ResultResponse> changePassword(@RequestBody PasswordRequest request) {
             return ResponseEntity.ok(authService.changePwd(request));
+    }
+
+    @PostMapping("restore")
+    public ResponseEntity<ResultResponse> restorePassword(@RequestBody EmailRequest request) {
+            return ResponseEntity.ok(authService.sendRestorationEmail(request));
     }
 }

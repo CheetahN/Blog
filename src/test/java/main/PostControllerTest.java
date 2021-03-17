@@ -453,7 +453,7 @@ public class PostControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(authenticated())
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.result").value("false"))
                 .andExpect(jsonPath("$.errors.title").value("Заголовок слишком короткий"))

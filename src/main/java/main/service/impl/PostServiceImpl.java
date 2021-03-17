@@ -281,7 +281,7 @@ public class PostServiceImpl implements PostService {
             postRequest.getTags().forEach(tag -> tagService.addTag(tag ,savedPost.getId()));
             return new ResultResponse(true);
         }
-        return new ResultResponse(false, errors);
+        throw new BadRequestException(errors);
     }
 
     @Override
