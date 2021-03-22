@@ -9,7 +9,7 @@ spring.jpa.show-sql: false
 blog.title: Deep Prank
 blog.subtitle: Trash Book
 blog.phone: +77776543210
-blog.email: efee13413fs@gundex.hru
+blog.email: bloqsng@gmail.com
 blog.copyright: Nikita Stoyan
 blog.copyrightFrom: 2021
 
@@ -33,7 +33,7 @@ upload.path: D:\junk\img
 # sending mails
 spring.mail.host: smtp.gmail.com
 spring.mail.port: 587
-spring.mail.username: ${SMTP_USER}
+spring.mail.username: bloqsng
 spring.mail.password: ${SMTP_PASSWORD}
 spring.mail.properties.mail.smtp.auth: true
 spring.mail.properties.mail.smtp.starttls.enable: true

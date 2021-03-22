@@ -207,7 +207,7 @@ public class AuthServiceImpl implements AuthService {
             user.setPassword(SecurityConfig.passwordEncoder().encode(request.getPassword()));
             userRepository.save(user);
         } else {
-            throw new BadRequestException(errors);
+            return new ResultResponse(false,errors);
         }
         return new ResultResponse(true);
     }
@@ -219,7 +219,7 @@ public class AuthServiceImpl implements AuthService {
         }
         MimeMessage message = mailSender.createMimeMessage();
         User user = userRepository.findByEmail(request.getEmail()).get();
-        user.setCode("randomHash");
+        user.setCode(UtilService.getRandomString(16));
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             message.setContent(createHtmlMessage(user.getName(), user.getCode()), "text/html; charset=utf-8");
@@ -237,8 +237,8 @@ public class AuthServiceImpl implements AuthService {
     private String createHtmlMessage(String userName, String code) {
         return "<h3>Здравствуйте, " + userName + "!</h3>" +
                 "<p><br>&nbsp;&nbsp;&nbsp;&nbsp;От Вашего имени подана заявка на смену пароля в "
-                + blogName + ".<br>" +
-                "Для сброса пароля пройдите по ссылке ниже и введите проверочный код:" + code +
-                "<br><br>&nbsp;&nbsp;&nbsp;&nbsp;<a href=http://blogik.com/restore>CLICK TO RESET PASSWORD</a>";
+                + blogName +". Для сброса пароля пройдите по следующей ссылке:" +
+                "<br>&nbsp;&nbsp;&nbsp;&nbsp;<a href=http://localhost:8080/login/change-password/" + code +
+                ">CLICK TO RESET PASSWORD</a>";
     }
 }
