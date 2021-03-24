@@ -11,7 +11,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer>{
@@ -90,4 +92,22 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     public Page<Post> findByIsActiveAndUser(byte isActive, User user, Pageable paging);
 
     public Page<Post> findByIsActiveAndModerationStatusAndUser(byte isActive, ModerationStatus moderationStatus, User user, Pageable paging);
+
+    @Query(value = "SELECT count(*) FROM Post p WHERE p.user.id = :id AND p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Integer countByAuthorId(Integer id);
+
+    @Query(value = "SELECT count(*) FROM Post p WHERE p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Integer countPublished();
+
+    @Query(value = "SELECT SUM(p.viewCount) FROM Post p WHERE p.user.id = :id AND p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Optional<Integer> sumViewsByAuthorId(Integer id);
+
+    @Query(value = "SELECT SUM(p.viewCount) FROM Post p WHERE p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Optional<Integer> sumViews();
+
+    @Query(value = "select MIN(p.time) from Post p where p.user.id = :id AND p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1")
+    public Optional<LocalDateTime> findFirstDateByAuthorId(Integer id);
+
+    @Query(value = "select MIN(p.time) from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1")
+    public Optional<LocalDateTime> findFirstDate();
 }

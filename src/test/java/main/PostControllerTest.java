@@ -27,7 +27,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import static main.service.TimeService.getTimestamp;
+import static main.service.impl.UtilService.getTimestamp;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;

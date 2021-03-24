@@ -4,17 +4,12 @@ import main.api.request.CommentRequest;
 import main.api.request.ModerationRequest;
 import main.api.request.SettingsRequest;
 import main.api.response.*;
-import main.service.FileService;
-import main.service.PostService;
-import main.service.SettingsService;
-import main.service.TagService;
+import main.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -25,13 +20,15 @@ public class ApiGeneralController {
     private final TagService tagService;
     private final PostService postService;
     private final FileService fileService;
+    private final StatService statService;
 
-    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService, PostService postService, FileService fileService) {
+    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService, PostService postService, FileService fileService, StatService statService) {
         this.initResponse = initResponse;
         this.settingsService = settingsService;
         this.tagService = tagService;
         this.postService = postService;
         this.fileService = fileService;
+        this.statService = statService;
     }
     @GetMapping("/init")
     public ResponseEntity<InitResponse> init() {
@@ -81,5 +78,17 @@ public class ApiGeneralController {
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<?> addComment(@RequestBody CommentRequest commentRequest) {
         return ResponseEntity.ok(new IdResponse(postService.addComment(commentRequest)));
+    }
+
+    @GetMapping("/statistics/my")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<StatisticsResponse> getMyStatistics() {
+        return ResponseEntity.ok(statService.getMyStatistics());
+    }
+
+    @GetMapping("/statistics/all")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<StatisticsResponse> getAllStatistics() {
+        return ResponseEntity.ok(statService.getStatistics());
     }
 }

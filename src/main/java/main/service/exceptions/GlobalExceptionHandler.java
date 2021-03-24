@@ -42,6 +42,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    protected ResponseEntity<GlobalException> handleUnauthorizedException(UnauthorizedException ex) {
+        return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.UNAUTHORIZED);
+    }
+
     @Data
     @AllArgsConstructor
     private static class GlobalException {

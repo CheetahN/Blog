@@ -31,8 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static main.service.TimeService.getLocalDateTime;
-import static main.service.TimeService.getTimestamp;
+import static main.service.impl.UtilService.getLocalDateTime;
+import static main.service.impl.UtilService.getTimestamp;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -142,7 +142,7 @@ public class PostServiceImpl implements PostService {
     public PostExpandedResponse getPostById(int postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
         User user = userService.getCurrentUser();
-        if (user != null && user.getIsModerator() == 0) {
+        if (user != null && user.getIsModerator() == 0 && !user.getId().equals(post.getUser().getId())) {
             postRepository.updateIncrementViewCount(postId);
         }
 

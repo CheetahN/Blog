@@ -250,4 +250,64 @@ public class GeneralControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors.image").value("неверный формат файла"));
     }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql", "/AddTestVotes.sql", "/AddGlobalSettings.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getMyStatisticsTest1() throws Exception {
+        this.mockMvc.perform(get("/api/statistics/my"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.postsCount").value("5"))
+                .andExpect(jsonPath("$.likesCount").value("2"))
+                .andExpect(jsonPath("$.dislikesCount").value("0"))
+                .andExpect(jsonPath("$.viewsCount").value("215"))
+                .andExpect(jsonPath("$.firstPublication").value("1579565152"));
+    }
+
+    @Test
+    @WithUserDetails("anna@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql", "/AddTestVotes.sql", "/AddGlobalSettings.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getMyStatisticsTest2() throws Exception {
+        this.mockMvc.perform(get("/api/statistics/my"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.postsCount").value("0"))
+                .andExpect(jsonPath("$.likesCount").value("0"))
+                .andExpect(jsonPath("$.dislikesCount").value("0"))
+                .andExpect(jsonPath("$.viewsCount").value("0"))
+                .andExpect(jsonPath("$.firstPublication").value("0"));
+    }
+
+    @Test
+    @WithUserDetails("anna@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql", "/AddTestVotes.sql", "/AddGlobalSettings.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getStatisticsTest() throws Exception {
+        this.mockMvc.perform(get("/api/statistics/all"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.postsCount").value("15"))
+                .andExpect(jsonPath("$.likesCount").value("7"))
+                .andExpect(jsonPath("$.dislikesCount").value("4"))
+                .andExpect(jsonPath("$.viewsCount").value("4469"))
+                .andExpect(jsonPath("$.firstPublication").value("1579565152"));
+    }
+
+    @Test
+    @WithUserDetails("pasha@mail.ru")
+    @Sql(value = {"/AddTestUsers.sql", "/AddTestPosts.sql", "/AddTestVotes.sql", "/AddGlobalSettings.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getStatisticsErrorTest() throws Exception {
+        this.mockMvc.perform(get("/api/statistics/all"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("User is not authorised to do this action:Pasha@mail.ru"));
+    }
 }
