@@ -5,7 +5,6 @@ import main.model.User;
 import main.model.Vote;
 import main.repository.PostRepository;
 import main.repository.VoteRepository;
-import main.service.UserService;
 import main.service.VoteService;
 import main.service.exceptions.PostNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +15,11 @@ import java.time.LocalDateTime;
 @Service
 public class VoteServiceImpl implements VoteService {
     private final VoteRepository voteRepository;
-    private final UserService userService;
+    private final UserServiceImpl userService;
     private final PostRepository postRepository;
 
     @Autowired
-    public VoteServiceImpl(VoteRepository voteRepository, UserService userService, PostRepository postRepository) {
+    public VoteServiceImpl(VoteRepository voteRepository, UserServiceImpl userService, PostRepository postRepository) {
         this.voteRepository = voteRepository;
         this.userService = userService;
         this.postRepository = postRepository;

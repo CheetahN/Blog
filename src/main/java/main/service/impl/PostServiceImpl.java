@@ -6,14 +6,12 @@ import main.api.response.*;
 import main.model.Comment;
 import main.model.Post;
 import main.model.User;
+import main.model.enums.GlobalSettingCode;
+import main.model.enums.GlobalSettingValue;
 import main.model.enums.ModerationStatus;
-import main.repository.CommentRepository;
-import main.repository.PostRepository;
-import main.repository.TagRepository;
-import main.repository.TagToPostRepository;
+import main.repository.*;
 import main.service.PostService;
 import main.service.TagService;
-import main.service.UserService;
 import main.service.exceptions.*;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,19 +37,21 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final TagToPostRepository tagToPostRepository;
-    private final UserService userService;
+    private final UserServiceImpl userService;
     private final TagService tagService;
     private final CommentRepository commentRepository;
+    private final SettingsRepository settingsRepository;
 
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, UserService userService, TagService tagService, CommentRepository commentRepository) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, TagToPostRepository tagToPostRepository, UserServiceImpl userService, TagService tagService, CommentRepository commentRepository, SettingsRepository settingsRepository) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.tagToPostRepository = tagToPostRepository;
         this.userService = userService;
         this.tagService = tagService;
         this.commentRepository = commentRepository;
+        this.settingsRepository = settingsRepository;
     }
 
     @Override
@@ -243,13 +243,16 @@ public class PostServiceImpl implements PostService {
             if (currentTime > postRequest.getTimestamp()) {
                 postRequest.setTimestamp(currentTime);
             }
+            User user = userService.getCurrentUser();
             Post post = Post.builder()
                     .time(getLocalDateTime(postRequest.getTimestamp()))
-                    .user(userService.getCurrentUser())
+                    .user(user)
                     .isActive(postRequest.getActive())
                     .text(postRequest.getText())
                     .title(postRequest.getTitle())
-                    .moderationStatus(ModerationStatus.NEW)
+                    .moderationStatus(user.getIsModerator() == 1
+                            || settingsRepository.findByCode(GlobalSettingCode.POST_PREMODERATION).getValue().equals(GlobalSettingValue.NO)
+                            ?  ModerationStatus.ACCEPTED : ModerationStatus.NEW)
                     .build();
             Post savedPost = postRepository.save(post);
             postRequest.getTags().forEach(tag -> tagService.addTag(tag ,savedPost.getId()));
@@ -273,9 +276,9 @@ public class PostServiceImpl implements PostService {
             post.setIsActive(postRequest.getActive());
             post.setText(postRequest.getText());
             post.setTitle(postRequest.getTitle());
-            if (userService.getCurrentUser().getIsModerator() == 0) {
-                post.setModerationStatus(ModerationStatus.NEW);
-            }
+            post.setModerationStatus(userService.getCurrentUser().getIsModerator() == 1
+                        || settingsRepository.findByCode(GlobalSettingCode.POST_PREMODERATION).getValue().equals(GlobalSettingValue.NO)
+                        ?  ModerationStatus.ACCEPTED : ModerationStatus.NEW);
             Post savedPost = postRepository.save(post);
             tagService.removeTagsFromPost(id);
             postRequest.getTags().forEach(tag -> tagService.addTag(tag ,savedPost.getId()));

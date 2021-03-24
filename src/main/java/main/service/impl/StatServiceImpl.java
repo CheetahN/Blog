@@ -8,23 +8,20 @@ import main.repository.PostRepository;
 import main.repository.SettingsRepository;
 import main.repository.VoteRepository;
 import main.service.StatService;
-import main.service.UserService;
 import main.service.exceptions.UnauthorizedException;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 import static main.service.impl.UtilService.getTimestamp;
 
 @Service
 public class StatServiceImpl implements StatService {
 
-    private final UserService userService;
+    private final UserServiceImpl userService;
     private final SettingsRepository settingsRepository;
     private final PostRepository postRepository;
     private final VoteRepository voteRepository;
 
-    public StatServiceImpl(UserService userService, SettingsRepository settingsRepository, PostRepository postRepository, VoteRepository voteRepository) {
+    public StatServiceImpl(UserServiceImpl userService, SettingsRepository settingsRepository, PostRepository postRepository, VoteRepository voteRepository) {
         this.userService = userService;
         this.settingsRepository = settingsRepository;
         this.postRepository = postRepository;
@@ -42,7 +39,6 @@ public class StatServiceImpl implements StatService {
                 .firstPublication(postRepository.findFirstDateByAuthorId(user.getId()).isPresent() ?
                         getTimestamp(postRepository.findFirstDateByAuthorId(user.getId()).get()) : 0 )
                 .build();
-
     }
 
     @Override

@@ -2,6 +2,7 @@ package main.controller;
 
 import main.api.request.CommentRequest;
 import main.api.request.ModerationRequest;
+import main.api.request.ProfileRequest;
 import main.api.request.SettingsRequest;
 import main.api.response.*;
 import main.service.*;
@@ -21,14 +22,16 @@ public class ApiGeneralController {
     private final PostService postService;
     private final FileService fileService;
     private final StatService statService;
+    private final UserService userService;
 
-    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService, PostService postService, FileService fileService, StatService statService) {
+    public ApiGeneralController(InitResponse initResponse, SettingsService settingsService, TagService tagService, PostService postService, FileService fileService, StatService statService, UserService userService) {
         this.initResponse = initResponse;
         this.settingsService = settingsService;
         this.tagService = tagService;
         this.postService = postService;
         this.fileService = fileService;
         this.statService = statService;
+        this.userService = userService;
     }
     @GetMapping("/init")
     public ResponseEntity<InitResponse> init() {
@@ -90,5 +93,11 @@ public class ApiGeneralController {
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<StatisticsResponse> getAllStatistics() {
         return ResponseEntity.ok(statService.getStatistics());
+    }
+
+    @PostMapping("/api/profile/my")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<ResultResponse> changeProfile(@RequestBody ProfileRequest request) {
+        return ResponseEntity.ok(userService.changeMyProfile(request));
     }
 }

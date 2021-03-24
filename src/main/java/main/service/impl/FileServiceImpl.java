@@ -42,5 +42,12 @@ public class FileServiceImpl implements FileService {
         }
         throw new BadRequestException(errors);
     }
+
+    public String uploadAvatar(MultipartFile image) throws {
+        return null;
+    }
+    public void removeAvatar() {
+
+    }
 }
 
