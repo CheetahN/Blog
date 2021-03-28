@@ -2,16 +2,19 @@ package main.service.impl;
 
 import main.api.request.ProfileRequest;
 import main.api.response.ResultResponse;
+import main.config.SecurityConfig;
 import main.model.User;
 import main.repository.UserRepository;
 import main.service.FileService;
 import main.service.UserService;
 import main.service.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.unit.DataSize;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +24,8 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final FileService fileService;
+    @Value("${spring.servlet.multipart.max-file-size}")
+    private String maxImageSize;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, FileService fileService) {
@@ -60,14 +65,23 @@ public class UserServiceImpl implements UserService {
             errors.put("password", "Пароль короче 6-ти символов");
         }
 
+        if (profileRequest.getPhoto() != null) {
+            if (!(profileRequest.getPhoto().getOriginalFilename().endsWith(".jpg") || (profileRequest.getPhoto().getOriginalFilename().endsWith(".png")))) {
+                errors.put("image", "Неверный формат файла");
+            }
+            if (profileRequest.getPhoto().getSize() > DataSize.parse(maxImageSize).toBytes()) {
+                errors.put("photo", "Фото должно быть не более 1 Мб");
+            }
+        }
+
         if (!errors.isEmpty())
             throw new BadRequestException(errors);
 
-        if (profileRequest.getRemovePhoto() == 1) {
-            user.setPhoto("");
-            fileService.removeAvatar();
+        if (profileRequest.getRemovePhoto() != null && profileRequest.getRemovePhoto() == 1) {
+            user.setPhoto(null);
+            fileService.removeImage(user.getPhoto());
         } else if (profileRequest.getPhoto() != null) {
-            user.setPhoto(fileService.uploadAvatar(profileRequest.getPhoto()));
+            user.setPhoto(fileService.uploadFile(profileRequest.getPhoto()));
         }
 
         if (profileRequest.getName() != null )
@@ -75,7 +89,7 @@ public class UserServiceImpl implements UserService {
         if (profileRequest.getEmail() != null )
             user.setEmail(profileRequest.getEmail());
         if (profileRequest.getPassword() != null) {
-            user.setPassword(profileRequest.getPassword());
+            user.setPassword(SecurityConfig.passwordEncoder().encode(profileRequest.getPassword()));
         }
         userRepository.save(user);
         return new ResultResponse(true);

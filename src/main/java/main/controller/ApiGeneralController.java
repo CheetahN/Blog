@@ -1,9 +1,6 @@
 package main.controller;
 
-import main.api.request.CommentRequest;
-import main.api.request.ModerationRequest;
-import main.api.request.ProfileRequest;
-import main.api.request.SettingsRequest;
+import main.api.request.*;
 import main.api.response.*;
 import main.service.*;
 import org.springframework.http.HttpStatus;
@@ -33,6 +30,7 @@ public class ApiGeneralController {
         this.statService = statService;
         this.userService = userService;
     }
+
     @GetMapping("/init")
     public ResponseEntity<InitResponse> init() {
         return ResponseEntity.ok(initResponse);
@@ -44,7 +42,7 @@ public class ApiGeneralController {
     }
 
     @GetMapping("/tag")
-    public ResponseEntity<TagListResponse>  getTag(@RequestParam(name = "query", required = false) String query) {
+    public ResponseEntity<TagListResponse> getTag(@RequestParam(name = "query", required = false) String query) {
         return ResponseEntity.ok(tagService.getTag(query));
     }
 
@@ -74,7 +72,7 @@ public class ApiGeneralController {
     @PostMapping("/image")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<?> submitImage(@RequestParam MultipartFile image) {
-        return ResponseEntity.ok(fileService.uploadFile(image));
+        return ResponseEntity.ok(fileService.uploadImage(image));
     }
 
     @PostMapping("/comment")
@@ -95,9 +93,17 @@ public class ApiGeneralController {
         return ResponseEntity.ok(statService.getStatistics());
     }
 
-    @PostMapping("/api/profile/my")
+    @PostMapping(path = "/profile/my", consumes = {"multipart/form-data"})
     @PreAuthorize("hasAuthority('user:write')")
-    public ResponseEntity<ResultResponse> changeProfile(@RequestBody ProfileRequest request) {
-        return ResponseEntity.ok(userService.changeMyProfile(request));
+    public ResponseEntity<ResultResponse> changeProfileMultipart(@ModelAttribute ProfileRequest multipartRequest) {
+        System.out.print("multipart");
+            return ResponseEntity.ok(userService.changeMyProfile(multipartRequest));
+    }
+
+    @PostMapping(path = "/profile/my")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<ResultResponse> changeProfile(@RequestBody ProfileRequest profileRequest) {
+        System.out.print("json");
+            return ResponseEntity.ok(userService.changeMyProfile(profileRequest));
     }
 }

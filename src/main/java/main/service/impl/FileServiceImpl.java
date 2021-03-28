@@ -18,7 +18,7 @@ public class FileServiceImpl implements FileService {
     private String uploadPath;
 
     @Override
-    public String uploadFile(MultipartFile image) {
+    public String uploadImage(MultipartFile image) {
         Map<String, String> errors = new HashMap<>();
         if (image == null) {
             errors.put("image", "файл пуст");
@@ -26,27 +26,30 @@ public class FileServiceImpl implements FileService {
             if (!(image.getOriginalFilename().endsWith(".jpg") || (image.getOriginalFilename().endsWith(".png")))) {
                 errors.put("image", "неверный формат файла");
             } else {
-                String randomPath = "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/";
-                File uploadDir = new File(uploadPath + randomPath);
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdirs();
-                }
-                String fullPath = uploadPath + randomPath + image.getOriginalFilename();
-                try {
-                    image.transferTo(new File(fullPath));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return "/upload" + randomPath + image.getOriginalFilename();
+                return uploadFile(image);
             }
         }
         throw new BadRequestException(errors);
     }
 
-    public String uploadAvatar(MultipartFile image) throws {
-        return null;
+    @Override
+    public String uploadFile(MultipartFile image) {
+        String randomPath = "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/";
+        File uploadDir = new File(uploadPath + randomPath);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+        String fullPath = uploadPath + randomPath + image.getOriginalFilename();
+        try {
+            image.transferTo(new File(fullPath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "/upload" + randomPath + image.getOriginalFilename();
     }
-    public void removeAvatar() {
+
+    @Override
+    public void removeImage(String imagePath) {
 
     }
 }
