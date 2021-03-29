@@ -12,10 +12,11 @@ import javax.persistence.*;
 public class GlobalSetting {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private int id;
+    private Integer id;
 
+    @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(255)", nullable = false)
     private GlobalSettingCode code;
 

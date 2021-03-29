@@ -1,0 +1,10 @@
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE post_votes;
+TRUNCATE tag2post;
+TRUNCATE tags;
+TRUNCATE post_votes;
+TRUNCATE post_comments;
+TRUNCATE posts;
+TRUNCATE users;
+TRUNCATE global_settings;;
+SET FOREIGN_KEY_CHECKS = 1;

@@ -1,21 +1,30 @@
 package main.service;
 
+import main.api.request.EmailRequest;
+import main.api.request.PasswordRequest;
 import main.api.request.RegistrationRequest;
-import main.api.response.AuthResponse;
-import main.api.response.CaptchaResponse;
-import main.api.response.RegistrationResponse;
+import main.api.response.*;
+import main.model.User;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Service
 public interface AuthService {
 
-    public AuthResponse check(String httpSession);
+    public UserResponse check(String httpSession);
 
-    public AuthResponse logout(String httpSession);
+    public AuthResultResponse logout(HttpServletRequest request);
 
-    public AuthResponse login(String email, String password, String httpSession);
+    public AuthResultResponse login(String email, String password);
 
     public CaptchaResponse getCaptcha();
 
-    public RegistrationResponse register(RegistrationRequest request);
+    public ResultResponse register(RegistrationRequest request);
+
+    public UserResponse convertUserToUserResponse(User user);
+
+    public ResultResponse changePwd(PasswordRequest request);
+
+    public ResultResponse sendRestorationEmail(EmailRequest request);
 }

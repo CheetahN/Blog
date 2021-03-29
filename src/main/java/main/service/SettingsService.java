@@ -1,14 +1,10 @@
 package main.service;
 
+import main.api.request.SettingsRequest;
 import main.api.response.SettingsResponse;
-import org.springframework.stereotype.Service;
 
-@Service
-public class SettingsService {
-    public SettingsResponse getGlobalSettings() {
-        SettingsResponse settingsResponse = new SettingsResponse();
-        settingsResponse.setMultiuserMode(true);
-        settingsResponse.setStatisticsIsPuplic(true);
-        return settingsResponse;
-    }
+public interface SettingsService {
+    public SettingsResponse getGlobalSettings();
+
+    public boolean setGlobalSettings(SettingsRequest settingsRequest);
 }

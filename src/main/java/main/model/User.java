@@ -3,6 +3,7 @@ package main.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import main.model.enums.Role;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -14,9 +15,9 @@ import java.time.LocalDateTime;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private int id;
+    private Integer id;
 
     @Column(name = "is_moderator", nullable = false)
     private byte isModerator;
@@ -45,5 +46,9 @@ public class User {
         this.name = name;
         this.email = email;
         this.password = password;
+    }
+
+    public Role getRole() {
+        return isModerator == 1 ? Role.MODERATOR : Role.USER;
     }
 }

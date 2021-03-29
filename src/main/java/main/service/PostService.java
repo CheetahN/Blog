@@ -1,11 +1,14 @@
 package main.service;
 
+import main.api.request.CommentRequest;
+import main.api.request.PostRequest;
 import main.api.response.CalendarResponse;
 import main.api.response.PostExpandedResponse;
 import main.api.response.PostListReponse;
+import main.api.response.ResultResponse;
 
 /**
- * Service for working with posts
+ * Service for posts
  */
 
 public interface PostService {
@@ -43,7 +46,19 @@ public interface PostService {
      *
      * @return
      */
-    public CalendarResponse getCalendar(int year);
+    public CalendarResponse getCalendar(Integer year);
 
-    public PostExpandedResponse getPost(int id, String sessionId);
+    public PostExpandedResponse getPostById(int id);
+
+    public PostListReponse getPostsForModeration(int offset, int limit, String status);
+
+    public PostListReponse getPostsMy(int offset, int limit, String status);
+
+    public boolean moderate(int postId, String decision);
+
+    public ResultResponse createPost(PostRequest postRequest);
+
+    public ResultResponse changePost(PostRequest postRequest, Integer id);
+
+    public Integer addComment(CommentRequest commentRequest);
 }

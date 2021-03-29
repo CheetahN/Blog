@@ -1,7 +1,10 @@
 package main.service.impl;
 
-import main.api.response.TagDTO;
 import main.api.response.TagResponse;
+import main.api.response.TagListResponse;
+import main.model.Tag;
+import main.model.TagToPost;
+import main.repository.PostRepository;
 import main.repository.TagRepository;
 import main.repository.TagToPostRepository;
 import main.service.TagService;
@@ -15,16 +18,20 @@ import java.util.List;
 @Service
 @Primary
 public class TagServiceImpl implements TagService {
-    private TagToPostRepository tagToPostRepository;
+    private final TagToPostRepository tagToPostRepository;
+    private final TagRepository tagRepository;
+    private final PostRepository postRepository;
 
     @Autowired
-    public TagServiceImpl(TagRepository tagRepository, TagToPostRepository tagToPostRepository) {
+    public TagServiceImpl(TagRepository tagRepository, TagToPostRepository tagToPostRepository, TagRepository tagRepository1, PostRepository postRepository) {
         this.tagToPostRepository = tagToPostRepository;
+        this.tagRepository = tagRepository1;
+        this.postRepository = postRepository;
     }
 
     @Override
-    public TagResponse getTag(String query) {
-        List<TagDTO> response = new ArrayList<>();
+    public TagListResponse getTag(String query) {
+        List<TagResponse> response = new ArrayList<>();
         List<Object[]> pairs = tagToPostRepository.countAggregatedTags();
         long max = 0;
         for (Object[]  pair: pairs ) {
@@ -41,9 +48,22 @@ public class TagServiceImpl implements TagService {
 
         pairs.forEach(pair -> {
             if (((String) pair[0]).startsWith(finalQuery))
-                response.add(new TagDTO((String) pair[0], ((Long) pair[1]).floatValue() / finalMax));
+                response.add(new TagResponse((String) pair[0], ((Long) pair[1]).floatValue() / finalMax));
         });
 
-        return new TagResponse(response);
+        return new TagListResponse(response);
+    }
+
+    public void addTag(String tagName, Integer postId){
+        Tag tag = tagRepository.findByName(tagName).orElse(new Tag());
+        if (tag.getName() == null) {
+            tag.setName(tagName);
+            tag = tagRepository.save(tag);
+        }
+        tagToPostRepository.save(new TagToPost(postRepository.getOne(postId), tag));
+    }
+
+    public void removeTagsFromPost(Integer postId) {
+        tagToPostRepository.deleteByPost(postRepository.getOne(postId));
     }
 }

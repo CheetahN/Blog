@@ -1,51 +1,77 @@
 package main.controller;
 
+import main.api.request.EmailRequest;
 import main.api.request.LoginRequest;
+import main.api.request.PasswordRequest;
 import main.api.request.RegistrationRequest;
-import main.api.response.AuthResponse;
+import main.api.response.AuthResultResponse;
 import main.api.response.CaptchaResponse;
-import main.api.response.RegistrationResponse;
+import main.api.response.ResultResponse;
+import main.repository.UserRepository;
 import main.service.AuthService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/auth")
 public class ApiAuthController {
     private AuthService authService;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
 
-    public ApiAuthController(AuthService authService) {
+    public ApiAuthController(AuthService authService, AuthenticationManager authenticationManager, UserRepository userRepository) {
         this.authService = authService;
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("check")
-    private AuthResponse check(HttpSession session) {
-        return authService.check(session.getId());
+    public ResponseEntity<AuthResultResponse> check(Principal principal) {
+        if (principal == null)
+            return ResponseEntity.ok(new AuthResultResponse(false));
+        else
+            return ResponseEntity.ok(
+                    new AuthResultResponse(
+                            true,
+                            authService.check(principal.getName())));
     }
 
     @PostMapping("login")
-    private AuthResponse login(HttpSession session, @RequestBody LoginRequest request) {
-        return authService.login(request.getEmail(), request.getPassword(), session.getId());
+    public ResponseEntity<AuthResultResponse> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request.getEmail(), request.getPassword()));
     }
 
     @GetMapping("logout")
-    private AuthResponse login(HttpSession session) {
-        return authService.logout(session.getId());
+    public ResponseEntity<AuthResultResponse> logout(HttpServletRequest request) {
+        return ResponseEntity.ok(authService.logout(request));
     }
 
     @GetMapping("captcha")
-    private ResponseEntity<CaptchaResponse> getCaptcha() {
-        CaptchaResponse response = authService.getCaptcha();
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<CaptchaResponse> getCaptcha() {
+        return ResponseEntity.ok(authService.getCaptcha());
     }
 
     @PostMapping("register")
-    private ResponseEntity<RegistrationResponse> register(@RequestBody RegistrationRequest request) {
-        RegistrationResponse response = authService.register(request);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<ResultResponse> register(@RequestBody RegistrationRequest request) {
+        ResultResponse response = authService.register(request);
+        if (response == null)       // registration not allowed
+            return ResponseEntity.notFound().build();
+        else
+            return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("password")
+    public ResponseEntity<ResultResponse> changePassword(@RequestBody PasswordRequest request) {
+            return ResponseEntity.ok(authService.changePwd(request));
+    }
+
+    @PostMapping("restore")
+    public ResponseEntity<ResultResponse> restorePassword(@RequestBody EmailRequest request) {
+            return ResponseEntity.ok(authService.sendRestorationEmail(request));
     }
 }

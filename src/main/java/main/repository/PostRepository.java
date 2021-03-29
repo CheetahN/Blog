@@ -1,6 +1,7 @@
 package main.repository;
 
 import main.model.Post;
+import main.model.User;
 import main.model.enums.ModerationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,12 +11,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer>{
-
-    public Post findById(int id);
 
     // sort by comments count
     @Query(value = "select p from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1 order by size(p.comments) desc")
@@ -29,10 +30,11 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     @Query(value = "select p from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1 order by p.time asc")
     public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeAsc(Pageable pageable);
 
-    // sort by likes desc. this should be fixed!
-    @Query(value = "SELECT COUNT(*), posts.* from post_votes join posts on posts.id = post_votes.post_id WHERE post_votes.VALUE = 1 GROUP BY post_id ORDER BY COUNT(*) desc",
-            nativeQuery = true )
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(Pageable paging);
+    // sort by likes desc
+    @Query(value = "SELECT * from posts p where p.time < CURRENT_TIME() and p.moderation_status = 'ACCEPTED' and p.is_active = 1 " +
+            "ORDER BY (SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = :vote) DESC",
+            nativeQuery = true)
+    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(byte vote, Pageable paging);
 
 
 
@@ -51,8 +53,6 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     public Page<Post> findByDate(String dateQuery, Pageable paging);
 
     /**
-     *
-     *
      * @return list of years with posts
      */
     @Query(value = "select year(p.time) as y from Post p group by y order by y")
@@ -83,4 +83,31 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     @Modifying
     @Query(value = "update Post p set p.viewCount = p.viewCount + 1 WHERE p.id = :id")
     public void updateIncrementViewCount(int id);
+
+    @Query(value = "select p from Post p where p.moderationStatus = 'NEW' and p.isActive = 1")
+    public Page<Post> findByIsActiveAndModerationStatusNew(Pageable pageable);
+
+    public Page<Post> findByIsActiveAndModerationStatusAndModerator(byte isActive, ModerationStatus moderationStatus, User moderator, Pageable pageable);
+
+    public Page<Post> findByIsActiveAndUser(byte isActive, User user, Pageable paging);
+
+    public Page<Post> findByIsActiveAndModerationStatusAndUser(byte isActive, ModerationStatus moderationStatus, User user, Pageable paging);
+
+    @Query(value = "SELECT count(*) FROM Post p WHERE p.user.id = :id AND p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Integer countByAuthorId(Integer id);
+
+    @Query(value = "SELECT count(*) FROM Post p WHERE p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Integer countPublished();
+
+    @Query(value = "SELECT SUM(p.viewCount) FROM Post p WHERE p.user.id = :id AND p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Optional<Integer> sumViewsByAuthorId(Integer id);
+
+    @Query(value = "SELECT SUM(p.viewCount) FROM Post p WHERE p.isActive = 1 AND p.moderationStatus = 'ACCEPTED' AND p.time < CURRENT_TIME()")
+    public Optional<Integer> sumViews();
+
+    @Query(value = "select MIN(p.time) from Post p where p.user.id = :id AND p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1")
+    public Optional<LocalDateTime> findFirstDateByAuthorId(Integer id);
+
+    @Query(value = "select MIN(p.time) from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1")
+    public Optional<LocalDateTime> findFirstDate();
 }
