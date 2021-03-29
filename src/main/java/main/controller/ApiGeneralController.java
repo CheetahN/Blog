@@ -95,15 +95,13 @@ public class ApiGeneralController {
 
     @PostMapping(path = "/profile/my", consumes = {"multipart/form-data"})
     @PreAuthorize("hasAuthority('user:write')")
-    public ResponseEntity<ResultResponse> changeProfileMultipart(@ModelAttribute ProfileRequest multipartRequest) {
-        System.out.print("multipart");
+    public ResponseEntity<ResultResponse> changeProfileMultipart(@ModelAttribute ProfileMultipartRequest multipartRequest) {
             return ResponseEntity.ok(userService.changeMyProfile(multipartRequest));
     }
 
     @PostMapping(path = "/profile/my")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<ResultResponse> changeProfile(@RequestBody ProfileRequest profileRequest) {
-        System.out.print("json");
             return ResponseEntity.ok(userService.changeMyProfile(profileRequest));
     }
 }
