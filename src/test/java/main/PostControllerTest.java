@@ -337,7 +337,7 @@ public class PostControllerTest {
 
     @Test
     @WithUserDetails("pasha@mail.ru")
-    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/AddTestUsers.sql", "/AddGlobalSettingsYes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void createPost() throws Exception {
         List<String> tags = new ArrayList<>();
@@ -378,7 +378,7 @@ public class PostControllerTest {
 
     @Test
     @WithUserDetails("pasha@mail.ru")
-    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/AddTestUsers.sql", "/AddGlobalSettingsYes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void createPostPastTime() throws Exception {
         List<String> tags = new ArrayList<>();
@@ -408,7 +408,7 @@ public class PostControllerTest {
 
     @Test
     @WithUserDetails("pasha@mail.ru")
-    @Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/AddTestUsers.sql", "/AddGlobalSettingsYes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void createPostError() throws Exception {
         List<String> tags = new ArrayList<>();
@@ -436,7 +436,7 @@ public class PostControllerTest {
 
     @Test
     @WithUserDetails("pasha@mail.ru")
-    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql", "/AddGlobalSettingsYes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void changePostError() throws Exception {
         List<String> tags = new ArrayList<>();
@@ -464,7 +464,7 @@ public class PostControllerTest {
 
     @Test
     @WithUserDetails("pasha@mail.ru")
-    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/AddTestUsers.sql", "/AddPost.sql", "/AddGlobalSettingsYes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/Clear.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void changePost() throws Exception {
         List<String> tags = new ArrayList<>();

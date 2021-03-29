@@ -6,4 +6,5 @@ TRUNCATE post_votes;
 TRUNCATE post_comments;
 TRUNCATE posts;
 TRUNCATE users;
+TRUNCATE global_settings;;
 SET FOREIGN_KEY_CHECKS = 1;

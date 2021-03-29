@@ -65,6 +65,8 @@ public class AuthServiceImpl implements AuthService {
     private String blogName;
     @Value("${blog.email}")
     private String blogEmail;
+    @Value("${application.host}")
+    private String appHost;
 
 
     @Autowired
@@ -238,7 +240,8 @@ public class AuthServiceImpl implements AuthService {
         return "<h3>Здравствуйте, " + userName + "!</h3>" +
                 "<p><br>&nbsp;&nbsp;&nbsp;&nbsp;От Вашего имени подана заявка на смену пароля в "
                 + blogName +". Для сброса пароля пройдите по следующей ссылке:" +
-                "<br>&nbsp;&nbsp;&nbsp;&nbsp;<a href=http://localhost:8080/login/change-password/" + code +
+                "<br>&nbsp;&nbsp;&nbsp;&nbsp;" +
+                "<a href=" + appHost + "/login/change-password/" + code +
                 ">CLICK TO RESET PASSWORD</a>";
     }
 }
