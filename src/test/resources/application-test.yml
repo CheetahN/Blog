@@ -1,7 +1,8 @@
-spring.datasource.url: jdbc:mysql://192.168.1.16:3307/blog-test
-spring.datasource.username: root
-spring.datasource.password: password
-
+spring.datasource.url: jdbc:mysql://${db.host}:3306/${db.name}
+db.host: ${T_DB_HOST:192.168.1.16}
+db.name: ${T_DB_NAME:blog-test}
+spring.datasource.username: ${T_DB_USER:root}
+spring.datasource.password: ${T_DB_PASSWORD:password}
 spring.jpa.hibernate.ddl-auto: validate
 spring.jpa.show-sql: false
 
