@@ -47,8 +47,9 @@ public class TagServiceImpl implements TagService {
         else finalQuery = query;
 
         pairs.forEach(pair -> {
-            if (((String) pair[0]).startsWith(finalQuery))
-                response.add(new TagResponse((String) pair[0], ((Long) pair[1]).floatValue() / finalMax));
+            float weight = ((Long) pair[1]).floatValue() / finalMax;
+            if (weight > 0.2 && ((String) pair[0]).startsWith(finalQuery))
+                response.add(new TagResponse((String) pair[0], weight));
         });
 
         return new TagListResponse(response);

@@ -180,7 +180,7 @@ public class AuthServiceImpl implements AuthService {
             user.setIsModerator((byte) 0);
             userRepository.save(user);
         } else {
-            throw new BadRequestException(errors);
+            return new ResultResponse(false, errors);
         }
         return new ResultResponse(true);
     }

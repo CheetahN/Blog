@@ -56,7 +56,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostListReponse getPosts(int offset, int limit, String mode) {
-        Pageable paging = PageRequest.of( offset / limit, limit);
+        Pageable paging = getPage(offset, limit);
         Page<Post> posts;
         if ("recent".equals(mode)) {
             posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeDesc(paging);
@@ -68,7 +68,7 @@ public class PostServiceImpl implements PostService {
             posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByComments(paging);
 
         } else {
-            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes((byte) 1, paging);
+            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(paging);
         }
 
         return new PostListReponse(posts.getTotalElements(), getList(posts));
@@ -77,7 +77,7 @@ public class PostServiceImpl implements PostService {
     //  search in text
     @Override
     public PostListReponse searchPosts(int offset, int limit, String query) {
-        Pageable paging = PageRequest.of( offset / 10, limit);
+        Pageable paging = getPage(offset, limit);
         Page<Post> posts = postRepository.findByTextContaining(query, paging);
         return new PostListReponse(posts.getTotalElements(), getList(posts));
     }
@@ -178,7 +178,7 @@ public class PostServiceImpl implements PostService {
     public PostListReponse getPostsForModeration(int offset, int limit, String status) {
         User currentUser = userService.getCurrentUser();
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
-        Pageable paging = PageRequest.of( offset / limit, limit, sort);
+        Pageable paging = getPage(offset, limit, sort);
 
         Page<Post> posts;
         if ("new".equals(status)) {
@@ -193,7 +193,7 @@ public class PostServiceImpl implements PostService {
     public PostListReponse getPostsMy(int offset, int limit, String status) {
         User currentUser = userService.getCurrentUser();
         Sort sort = Sort.by(Sort.Direction.DESC, "time");
-        Pageable paging = PageRequest.of( offset / limit, limit, sort);
+        Pageable paging = getPage(offset, limit, sort);
 
         Page<Post> posts;
         if ("inactive".equals(status)) {
@@ -328,5 +328,12 @@ public class PostServiceImpl implements PostService {
         else if (postRequest.getTitle().length() < 3)
             errors.put("title", "Заголовок слишком короткий");
         return errors;
+    }
+
+    private Pageable getPage(int offset, int limit) {
+        return PageRequest.of( offset / limit, limit);
+    }
+    private Pageable getPage(int offset, int limit, Sort sort) {
+        return PageRequest.of( offset / limit, limit, sort);
     }
 }

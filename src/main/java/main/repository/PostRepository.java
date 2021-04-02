@@ -32,9 +32,10 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
 
     // sort by likes desc
     @Query(value = "SELECT * from posts p where p.time < CURRENT_TIME() and p.moderation_status = 'ACCEPTED' and p.is_active = 1 " +
-            "ORDER BY (SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = :vote) DESC",
+            "ORDER BY (SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = 1) DESC, " +
+            "(SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = -1)",
             nativeQuery = true)
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(byte vote, Pageable paging);
+    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(Pageable paging);
 
 
 
