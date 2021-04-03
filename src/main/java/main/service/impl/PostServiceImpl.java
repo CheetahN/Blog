@@ -10,6 +10,7 @@ import main.model.enums.GlobalSettingCode;
 import main.model.enums.GlobalSettingValue;
 import main.model.enums.ModerationStatus;
 import main.repository.*;
+import main.model.aggregations.IPostCount;
 import main.service.PostService;
 import main.service.TagService;
 import main.service.exceptions.*;
@@ -21,7 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -104,9 +104,9 @@ public class PostServiceImpl implements PostService {
         if (year == null)
             year = LocalDateTime.now().getYear();
         Map<String, Integer> postsCountsMap = new HashMap<>();
-        List<Object[]> postsCountsList = postRepository.countByDays(year);
-        postsCountsList.forEach(objects ->
-                postsCountsMap.put((String) objects[0], ((BigInteger) objects[1]).intValue())
+        List<IPostCount> postsCountsList = postRepository.countByDays(year);
+        postsCountsList.forEach(postCount ->
+                postsCountsMap.put(postCount.getDateString(), postCount.getTotalPosts())
         );
 
         return new CalendarResponse(postRepository.findYears(), postsCountsMap);
