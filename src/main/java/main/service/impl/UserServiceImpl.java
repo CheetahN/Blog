@@ -34,8 +34,6 @@ public class UserServiceImpl implements UserService {
     private String maxImageSize;
     @Value("${upload.path}")
     private String uploadPath;
-    @Value("${upload.url.label}")
-    private String uploadUrlLabel;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, FileServiceImpl fileService) {

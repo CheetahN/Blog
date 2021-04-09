@@ -9,16 +9,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class MvcConfig implements WebMvcConfigurer {
     @Value("${upload.path}")
     private String uploadPath;
-    @Value("${upload.url.label}")
-    private String uploadUrlLabel;
-
+    @Value("${tmp.path}")
+    private String tmpPath;
 //    public void addViewControllers(ViewControllerRegistry registry) {
 //        registry.addViewController("/login");
 //    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler(uploadUrlLabel + "/**")
-                .addResourceLocations("file:///" + uploadPath + "/");
+        registry.addResourceHandler("/upload/**")
+                .addResourceLocations("file:///" + tmpPath + uploadPath + "/");
     }
 }
