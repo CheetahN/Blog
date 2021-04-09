@@ -4,6 +4,7 @@ import main.api.response.TagResponse;
 import main.api.response.TagListResponse;
 import main.model.Tag;
 import main.model.TagToPost;
+import main.model.aggregations.ITagCount;
 import main.repository.PostRepository;
 import main.repository.TagRepository;
 import main.repository.TagToPostRepository;
@@ -32,11 +33,11 @@ public class TagServiceImpl implements TagService {
     @Override
     public TagListResponse getTag(String query) {
         List<TagResponse> response = new ArrayList<>();
-        List<Object[]> pairs = tagToPostRepository.countAggregatedTags();
+        List<ITagCount> tagCounts = tagToPostRepository.countAggregatedTags();
         long max = 0;
-        for (Object[]  pair: pairs ) {
-            if ((Long) pair[1] > max)
-                max = (Long) pair[1];
+        for (ITagCount  tagCount: tagCounts ) {
+            if (tagCount.getTagCount() > max)
+                max = tagCount.getTagCount();
         }
 
         long finalMax = max;
@@ -46,9 +47,10 @@ public class TagServiceImpl implements TagService {
             finalQuery = "";
         else finalQuery = query;
 
-        pairs.forEach(pair -> {
-            if (((String) pair[0]).startsWith(finalQuery))
-                response.add(new TagResponse((String) pair[0], ((Long) pair[1]).floatValue() / finalMax));
+        tagCounts.forEach(tagCount -> {
+            float weight = tagCount.getTagCount().floatValue() / finalMax;
+            if (weight > 0.2 && tagCount.getName().startsWith(finalQuery))
+                response.add(new TagResponse(tagCount.getName(), weight));
         });
 
         return new TagListResponse(response);

@@ -21,7 +21,6 @@ import main.repository.PostRepository;
 import main.repository.SettingsRepository;
 import main.repository.UserRepository;
 import main.service.AuthService;
-import main.service.exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -138,7 +137,16 @@ public class AuthServiceImpl implements AuthService {
                 Cage.DEFAULT_COMPRESS_RATIO, new RandomTokenGenerator(null, captchaLength), null);
         String code = cage.getTokenGenerator().next();
         String captcha = Base64.getEncoder().encodeToString(cage.draw(code));
-        String secret = captcha.substring(captcha.length() - 30, captcha.length() - 15);
+        String secret = null;
+        int limitator = 0;
+        do {
+            if (limitator > 20) {
+                captchaRepository.deleteBySecretCode(secret);
+                break;
+            }
+            secret = UtilService.getRandomString(20);
+            limitator++;
+        } while(captchaRepository.findBySecretCode(secret).isPresent());
 
         CaptchaCode captchaCode = new CaptchaCode();
         captchaCode.setTime(LocalDateTime.now());
@@ -166,7 +174,7 @@ public class AuthServiceImpl implements AuthService {
             errors.put("email", "Этот e-mail уже зарегистрирован");
         }
 
-        CaptchaCode captchaCode = captchaRepository.findBySecretCode(request.getCaptchaSecret());
+        CaptchaCode captchaCode = captchaRepository.findBySecretCode(request.getCaptchaSecret()).orElse(null);
         if (captchaCode == null || !captchaCode.getCode().equals(request.getCaptcha())) {
             errors.put("captcha", "Код с картинки введён неверно");
         }
@@ -180,7 +188,7 @@ public class AuthServiceImpl implements AuthService {
             user.setIsModerator((byte) 0);
             userRepository.save(user);
         } else {
-            throw new BadRequestException(errors);
+            return new ResultResponse(false, errors);
         }
         return new ResultResponse(true);
     }
@@ -189,11 +197,11 @@ public class AuthServiceImpl implements AuthService {
     public ResultResponse changePwd(PasswordRequest request) {
         Map<String, String> errors = new HashMap<>();
 
-        if (request.getPassword().length() <= 6) {
+        if (request.getPassword().length() < 6) {
             errors.put("password", "Пароль короче 6-ти символов");
         }
 
-        CaptchaCode captchaCode = captchaRepository.findBySecretCode(request.getCaptchaSecret());
+        CaptchaCode captchaCode = captchaRepository.findBySecretCode(request.getCaptchaSecret()).orElse(null);
         if (captchaCode == null || !captchaCode.getCode().equals(request.getCaptcha())) {
             errors.put("captcha", "Код с картинки введён неверно");
         }

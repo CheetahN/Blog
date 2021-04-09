@@ -3,6 +3,7 @@ package main.repository;
 import main.model.Post;
 import main.model.User;
 import main.model.enums.ModerationStatus;
+import main.model.aggregations.IPostCount;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,9 +33,10 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
 
     // sort by likes desc
     @Query(value = "SELECT * from posts p where p.time < CURRENT_TIME() and p.moderation_status = 'ACCEPTED' and p.is_active = 1 " +
-            "ORDER BY (SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = :vote) DESC",
+            "ORDER BY (SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = 1) DESC, " +
+            "(SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = -1)",
             nativeQuery = true)
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(byte vote, Pageable paging);
+    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(Pageable paging);
 
 
 
@@ -65,9 +67,9 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
      * date format YYYY-MM-DD, e.g. day of year
      * count = posts in a day
      */
-    @Query(value = "SELECT DATE_FORMAT(time, '%Y-%m-%d') AS dat, COUNT(*) FROM posts WHERE YEAR(TIME) = ?1 AND is_active = 1 AND moderation_status = 'ACCEPTED' AND TIME < CURRENT_TIME() Group BY dat",
+    @Query(value = "SELECT DATE_FORMAT(time, '%Y-%m-%d') AS dateString, COUNT(*) AS totalPosts FROM posts WHERE YEAR(TIME) = ?1 AND is_active = 1 AND moderation_status = 'ACCEPTED' AND TIME < CURRENT_TIME() Group BY dateString",
             nativeQuery = true)
-    public List<Object[]> countByDays(int year);
+    public List<IPostCount> countByDays(int year);
 
     /**
      * @param idList list if ID of posts

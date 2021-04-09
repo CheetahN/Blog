@@ -23,10 +23,10 @@ public class FileServiceImpl implements FileService {
 
     @Value("${upload.path}")
     private String uploadPath;
-    @Value("${upload.url.label}")
-    private String uploadUrlLabel;
     @Value("${avatar.size}")
     private int avatarSize;
+    @Value("${tmp.path}")
+    private String tmpPath;
 
     @Override
     public String uploadImage(MultipartFile image) {
@@ -45,33 +45,32 @@ public class FileServiceImpl implements FileService {
 
     public String uploadFile(MultipartFile image) {
         String randomPath = "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/";
-        File uploadDir = new File(uploadPath + randomPath);
+        File uploadDir = new File(tmpPath + uploadPath + randomPath);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
-        String fullPath = uploadPath + randomPath + image.getOriginalFilename();
+        Path outputPath = Paths.get(tmpPath + uploadPath + randomPath + image.getOriginalFilename());
         try {
-            image.transferTo(new File(fullPath));
+            image.transferTo(outputPath);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return uploadUrlLabel + randomPath + image.getOriginalFilename();
+        return "/" + uploadPath + randomPath + image.getOriginalFilename();
 
     }
 
-    public void cropAndResizeAvatar(User user) throws IOException {
-
-        File file = new File(uploadPath + user.getPhoto().substring(uploadUrlLabel.length()));
+    public void cropAndResizeAvatar(String imagePath) throws IOException {
+        File file = new File(tmpPath + imagePath.substring(1));
         BufferedImage image = ImageIO.read(file);
         int min = Math.min(image.getHeight(), image.getWidth());
         image = Scalr.crop(image, min, min);
         if (min > avatarSize)
             image = Scalr.resize(image, avatarSize, avatarSize);
-        ImageIO.write(image, user.getPhoto().substring(user.getPhoto().length() - 3), file);
+        ImageIO.write(image, imagePath.substring(imagePath.length() - 3), file);
     }
 
     public void removeImage(String imagePath) throws IOException {
-        Files.deleteIfExists(Paths.get(uploadPath + imagePath.substring(uploadUrlLabel.length())));
+        Files.deleteIfExists(Paths.get(tmpPath + imagePath.substring(1)));
     }
 }
 

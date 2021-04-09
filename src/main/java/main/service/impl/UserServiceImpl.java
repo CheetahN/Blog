@@ -34,8 +34,6 @@ public class UserServiceImpl implements UserService {
     private String maxImageSize;
     @Value("${upload.path}")
     private String uploadPath;
-    @Value("${upload.url.label}")
-    private String uploadUrlLabel;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, FileServiceImpl fileService) {
@@ -98,7 +96,7 @@ public class UserServiceImpl implements UserService {
         } else if (profileRequest.getPhoto() != null) {
             user.setPhoto(fileService.uploadFile(profileRequest.getPhoto()));
             try {
-                fileService.cropAndResizeAvatar(user);
+                fileService.cropAndResizeAvatar(user.getPhoto());
             } catch (IOException e) {
                 e.printStackTrace();
                 errors.put("avatar", "Ошибка изменения файла");
