@@ -59,15 +59,14 @@ public class FileServiceImpl implements FileService {
 
     }
 
-    public void cropAndResizeAvatar(User user) throws IOException {
-
-        File file = new File(tmpPath + user.getPhoto().substring(1));
+    public void cropAndResizeAvatar(String imagePath) throws IOException {
+        File file = new File(tmpPath + imagePath.substring(1));
         BufferedImage image = ImageIO.read(file);
         int min = Math.min(image.getHeight(), image.getWidth());
         image = Scalr.crop(image, min, min);
         if (min > avatarSize)
             image = Scalr.resize(image, avatarSize, avatarSize);
-        ImageIO.write(image, user.getPhoto().substring(user.getPhoto().length() - 3), file);
+        ImageIO.write(image, imagePath.substring(imagePath.length() - 3), file);
     }
 
     public void removeImage(String imagePath) throws IOException {

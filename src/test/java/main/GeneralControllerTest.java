@@ -68,13 +68,12 @@ public class GeneralControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.tags[0].weight").value(1.0))
-                .andExpect(jsonPath("$.tags[4].weight").value(0.71428573))
-                .andExpect(jsonPath("$.tags[4].name").value("F1"))
-                .andExpect(jsonPath("$.tags[3].name").value("Chaos"))
-                .andExpect(jsonPath("$.tags[2].name").value("Drama"))
+                .andExpect(jsonPath("$.tags[3].weight").value(0.71428573))
+                .andExpect(jsonPath("$.tags[3].name").value("F1"))
+                .andExpect(jsonPath("$.tags[2].name").value("Chaos"))
                 .andExpect(jsonPath("$.tags[1].name").value("Alcohol"))
                 .andExpect(jsonPath("$.tags[0].name").value("Java"))
-                .andExpect(jsonPath("$.tags", hasSize(5)));
+                .andExpect(jsonPath("$.tags", hasSize(4)));
     }
 
     @Test
