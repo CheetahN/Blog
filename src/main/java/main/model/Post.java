@@ -54,6 +54,9 @@ public class Post {
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
     private List<Vote> votes;
 
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    private List<TagToPost> tagToPostList;
+
     public Post() {
         viewCount = 0;
         moderationStatus = ModerationStatus.NEW;
