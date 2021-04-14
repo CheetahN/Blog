@@ -7,4 +7,5 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileService {
 
     public String uploadImage(MultipartFile image);
+    public void removeImage(String imagePath);
 }

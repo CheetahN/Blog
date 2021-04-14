@@ -1,6 +1,5 @@
 package main.service.impl;
 
-import main.model.User;
 import main.service.FileService;
 import main.service.exceptions.BadRequestException;
 import org.imgscalr.Scalr;
@@ -25,8 +24,6 @@ public class FileServiceImpl implements FileService {
     private String uploadPath;
     @Value("${avatar.size}")
     private int avatarSize;
-    @Value("${tmp.path}")
-    private String tmpPath;
 
     @Override
     public String uploadImage(MultipartFile image) {
@@ -45,11 +42,12 @@ public class FileServiceImpl implements FileService {
 
     public String uploadFile(MultipartFile image) {
         String randomPath = "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/";
-        File uploadDir = new File(tmpPath + uploadPath + randomPath);
+        File uploadDir = new File(uploadPath + randomPath);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
-        Path outputPath = Paths.get(tmpPath + uploadPath + randomPath + image.getOriginalFilename());
+        Path outputPath = Paths.get(uploadPath + randomPath + image.getOriginalFilename());
+        System.out.println(outputPath.toAbsolutePath());
         try {
             image.transferTo(outputPath);
         } catch (IOException e) {
@@ -60,7 +58,7 @@ public class FileServiceImpl implements FileService {
     }
 
     public void cropAndResizeAvatar(String imagePath) throws IOException {
-        File file = new File(tmpPath + imagePath.substring(1));
+        File file = new File(imagePath.substring(1));
         BufferedImage image = ImageIO.read(file);
         int min = Math.min(image.getHeight(), image.getWidth());
         image = Scalr.crop(image, min, min);
@@ -69,8 +67,13 @@ public class FileServiceImpl implements FileService {
         ImageIO.write(image, imagePath.substring(imagePath.length() - 3), file);
     }
 
-    public void removeImage(String imagePath) throws IOException {
-        Files.deleteIfExists(Paths.get(tmpPath + imagePath.substring(1)));
+    @Override
+    public void removeImage(String imagePath)  {
+        try {
+            Files.deleteIfExists(Paths.get(imagePath.substring(1)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
