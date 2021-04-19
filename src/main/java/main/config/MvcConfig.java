@@ -12,7 +12,12 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        //      For FileServiceImpl
         registry.addResourceHandler("/" + uploadPath + "/**")
                 .addResourceLocations("file:" + uploadPath + "/");
+
+//        //      For FileServiceAWS
+//        registry.addResourceHandler("/" + uploadAWS + "/**")
+//                .addResourceLocations(awsRoot);
     }
 }

@@ -40,14 +40,13 @@ public class FileServiceImpl implements FileService {
         throw new BadRequestException(errors);
     }
 
-    public String uploadFile(MultipartFile image) {
+    private String uploadFile(MultipartFile image) {
         String randomPath = "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/" + UtilService.getRandomString(2) + "/";
         File uploadDir = new File(uploadPath + randomPath);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
         Path outputPath = Paths.get(uploadPath + randomPath + image.getOriginalFilename());
-        System.out.println(outputPath.toAbsolutePath());
         try {
             image.transferTo(outputPath);
         } catch (IOException e) {
@@ -57,8 +56,8 @@ public class FileServiceImpl implements FileService {
 
     }
 
-    public void cropAndResizeAvatar(String imagePath) throws IOException {
-        File file = new File(imagePath.substring(1));
+    private void cropAndResizeAvatar(String imagePath) throws IOException {
+        File file = new File(imagePath);
         BufferedImage image = ImageIO.read(file);
         int min = Math.min(image.getHeight(), image.getWidth());
         image = Scalr.crop(image, min, min);
@@ -74,6 +73,17 @@ public class FileServiceImpl implements FileService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String uploadAvatar(MultipartFile image) {
+        String path = uploadFile(image);
+        try {
+            cropAndResizeAvatar(path.substring(1));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return path;
     }
 }
 

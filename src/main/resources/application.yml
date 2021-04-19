@@ -30,6 +30,9 @@ spring.servlet.multipart.enabled: true
 spring.servlet.multipart.location: ${java.io.tmpdir}
 upload.path: upload
 avatar.size: 100
+aws.upload.path: uploadam
+aws.root.url: "http://ns-blog-bucket.s3.eu-west-3.amazonaws.com/"
+aws.bucket.name: ns-blog-bucket
 
 # sending mails
 spring.mail.host: smtp.gmail.com

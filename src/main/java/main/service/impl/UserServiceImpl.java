@@ -89,13 +89,7 @@ public class UserServiceImpl implements UserService {
             fileService.removeImage(user.getPhoto());
             user.setPhoto(null);
         } else if (profileRequest.getPhoto() != null) {
-            user.setPhoto(fileService.uploadFile(profileRequest.getPhoto()));
-            try {
-                fileService.cropAndResizeAvatar(user.getPhoto());
-            } catch (IOException e) {
-                e.printStackTrace();
-                errors.put("avatar", "Ошибка изменения файла");
-            }
+            user.setPhoto(fileService.uploadAvatar(profileRequest.getPhoto()));
         }
 
         if (profileRequest.getName() != null )
