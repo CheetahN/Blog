@@ -27,31 +27,15 @@ public class VoteServiceImpl implements VoteService {
 
     @Override
     public boolean like(int postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-        User user = userService.getCurrentUser();
-        Vote vote = voteRepository.findByPostAndUser(post, user);
-        if (vote == null) {
-            vote = new Vote();
-            vote.setPost(post);
-            vote.setTime(LocalDateTime.now());
-            vote.setUser(user);
-        } else {
-            if (vote.getValue() == 1)
-                return false;
-        }
-        vote.setValue((byte) 1);
-
-        try {
-            voteRepository.saveAndFlush(vote);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+        return vote(postId, (byte) 1);
     }
 
     @Override
     public boolean dislike(int postId) {
+        return vote(postId, (byte) -1);
+    }
+
+    private boolean vote(int postId, byte value) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
         User user = userService.getCurrentUser();
         Vote vote = voteRepository.findByPostAndUser(post, user);
@@ -61,10 +45,10 @@ public class VoteServiceImpl implements VoteService {
             vote.setTime(LocalDateTime.now());
             vote.setUser(user);
         } else {
-            if (vote.getValue() == -1)
+            if (vote.getValue() == value)
                 return false;
         }
-        vote.setValue((byte) -1);
+        vote.setValue(value);
 
         try {
             voteRepository.saveAndFlush(vote);

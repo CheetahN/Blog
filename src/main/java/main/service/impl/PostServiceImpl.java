@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static main.service.impl.UtilService.getLocalDateTime;
 import static main.service.impl.UtilService.getTimestamp;
@@ -119,11 +120,10 @@ public class PostServiceImpl implements PostService {
     private List<PostResponse> getList(Page<Post> page){
         List<PostResponse> postResponseList = new ArrayList<>();
 
-        page.forEach((post -> {
-            String plainText = Jsoup.parse(post.getText()).text();
-            PostResponse postResponse = PostResponse.builder()
+        return page.stream().map(post ->
+            PostResponse.builder()
                     .id(post.getId())
-                    .announce(plainText.substring(0, Math.min(plainText.length(), 200)))
+                    .announce(Jsoup.parse(post.getText()).text().substring(0, Math.min(Jsoup.parse(post.getText()).text().length(), 200)))
                     .commentCount(post.getComments().size())
                     .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
                     .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
@@ -131,11 +131,8 @@ public class PostServiceImpl implements PostService {
                     .timestamp(getTimestamp(post.getTime()))
                     .viewCount(post.getViewCount())
                     .user(post.getUser().getId(), post.getUser().getName())
-                    .build();
-            postResponseList.add(postResponse);
-        }
-        ));
-        return postResponseList;
+                    .build()
+        ).collect(Collectors.toList());
     }
 
     @Override
@@ -145,23 +142,24 @@ public class PostServiceImpl implements PostService {
         if (user != null && user.getIsModerator() == 0 && !user.getId().equals(post.getUser().getId())) {
             postRepository.updateIncrementViewCount(postId);
         }
+        return convertToResponse(post);
+    }
 
-        List<CommentResponse> commentResponses = new ArrayList<>();
-        post.getComments().forEach(comment -> {
-            commentResponses.add(
-                    CommentResponse.builder()
-                            .id(comment.getId())
-                            .text(comment.getText())
-                            .timestamp(getTimestamp(comment.getTime()))
-                            .user(comment.getUser().getId(), comment.getUser().getName(), comment.getUser().getPhoto())
-                            .build()
-            );
-        });
+    private List<CommentResponse> getCommentResponses(Post post) {
+        return post.getComments().stream()
+                .map(comment -> CommentResponse.builder()
+                        .id(comment.getId())
+                        .text(comment.getText())
+                        .timestamp(getTimestamp(comment.getTime()))
+                        .user(comment.getUser().getId(), comment.getUser().getName(), comment.getUser().getPhoto())
+                        .build()
+                ).collect(Collectors.toList());
+    }
 
-
+    private PostExpandedResponse convertToResponse(Post post) {
         return PostExpandedResponse.builder()
                 .active(post.getIsActive() == 1)
-                .id(postId)
+                .id(post.getId())
                 .timestamp(getTimestamp(post.getTime()))
                 .user(post.getUser().getId(), post.getUser().getName())
                 .title(post.getTitle())
@@ -169,8 +167,8 @@ public class PostServiceImpl implements PostService {
                 .viewCount(post.getViewCount())
                 .likeCount(post.getVotes().stream().filter(vote -> vote.getValue() == 1).count())
                 .dislikeCount(post.getVotes().stream().filter(vote -> vote.getValue() == -1).count())
-                .tags(tagToPostRepository.findTagsByPost(post))
-                .comments(commentResponses)
+                .tags(post.getTagToPostList().stream().map(tagToPost -> tagToPost.getTag().getName()).collect(Collectors.toList()))
+                .comments(getCommentResponses(post))
                 .build();
     }
 
