@@ -29,14 +29,14 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final FileServiceImpl fileService;
+    private final FileService fileService;
     @Value("${spring.servlet.multipart.max-file-size}")
     private String maxImageSize;
     @Value("${upload.path}")
     private String uploadPath;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, FileServiceImpl fileService) {
+    public UserServiceImpl(UserRepository userRepository, FileService fileService) {
         this.userRepository = userRepository;
         this.fileService = fileService;
     }
