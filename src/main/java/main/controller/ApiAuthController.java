@@ -58,11 +58,8 @@ public class ApiAuthController {
 
     @PostMapping("register")
     public ResponseEntity<ResultResponse> register(@RequestBody RegistrationRequest request) {
-        ResultResponse response = authService.register(request);
-        if (response == null)       // registration not allowed
-            return ResponseEntity.notFound().build();
-        else
-            return ResponseEntity.ok(response);
+
+            return ResponseEntity.ok(authService.register(request));
     }
 
     @PostMapping("password")

@@ -68,10 +68,8 @@ public class ApiPostController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PostExpandedResponse> getPost(@PathVariable int id) {
-        PostExpandedResponse response = postService.getPostById(id);
-        if (response == null)
-            return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(postService.getPostById(id));
     }
 
     @GetMapping("/moderation")
@@ -98,28 +96,30 @@ public class ApiPostController {
     @PostMapping("/like")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<ResultResponse> like(@RequestBody VoteRequest voteRequest) {
-        ResultResponse response = new ResultResponse(
-            voteService.like(voteRequest.getPostId()));
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(new ResultResponse(
+                voteService.like(voteRequest.getPostId())));
     }
 
     @PostMapping("/dislike")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<ResultResponse> dislike(@RequestBody VoteRequest voteRequest) {
-        ResultResponse response = new ResultResponse(
-                voteService.dislike(voteRequest.getPostId()));
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.ok(new ResultResponse(
+                voteService.dislike(voteRequest.getPostId())));
     }
 
     @PostMapping("")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<ResultResponse> createPost(@RequestBody PostRequest postRequest) {
+
         return ResponseEntity.ok(postService.createPost(postRequest));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<ResultResponse> changePost(@RequestBody PostRequest postRequest, @PathVariable Integer id) {
+
         return ResponseEntity.ok(postService.changePost(postRequest, id));
     }
 }

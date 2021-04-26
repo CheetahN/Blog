@@ -21,6 +21,7 @@ import main.repository.PostRepository;
 import main.repository.SettingsRepository;
 import main.repository.UserRepository;
 import main.service.AuthService;
+import main.service.exceptions.RegistrationNotAllowedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -160,8 +161,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResultResponse register(RegistrationRequest request) {
-        if (settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE).getValue() == GlobalSettingValue.NO)
-            return null;
+        if (settingsRepository.findByCode(GlobalSettingCode.MULTIUSER_MODE).getValue() == GlobalSettingValue.NO) {
+            throw new RegistrationNotAllowedException();
+        }
         String LATIN = "^\\w{3,}$";
         String CYRILLIC = "^[а-яА-Я0-9_]{3,}$";
         Map<String, String> errors = new HashMap<>();
