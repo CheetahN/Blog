@@ -21,24 +21,22 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
 
     // sort by comments count
     @Query(value = "select p from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1 order by size(p.comments) desc")
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByComments(Pageable pageable);
+    public Page<Post> findPostsSortByComments(Pageable pageable);
 
     // sort by time desc
     @Query(value = "select p from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1 order by p.time desc")
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeDesc(Pageable pageable);
+    public Page<Post> findPostsSortByTimeDesc(Pageable pageable);
 
     // sort by time asc
     @Query(value = "select p from Post p where p.time < CURRENT_TIME() and p.moderationStatus = 'ACCEPTED' and p.isActive = 1 order by p.time asc")
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeAsc(Pageable pageable);
+    public Page<Post> findPostsSortByTimeAsc(Pageable pageable);
 
     // sort by likes desc
     @Query(value = "SELECT * from posts p where p.time < CURRENT_TIME() and p.moderation_status = 'ACCEPTED' and p.is_active = 1 " +
             "ORDER BY (SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = 1) DESC, " +
             "(SELECT COUNT(*) FROM post_votes pv WHERE pv.post_id = p.id AND pv.value = -1)",
             nativeQuery = true)
-    public Page<Post> findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(Pageable paging);
-
-
+    public Page<Post> findPostsSortByVotes(Pageable paging);
 
     /**
      * Seach request
@@ -87,7 +85,7 @@ public interface PostRepository extends JpaRepository<Post, Integer>{
     public void updateIncrementViewCount(int id);
 
     @Query(value = "select p from Post p where p.moderationStatus = 'NEW' and p.isActive = 1")
-    public Page<Post> findByIsActiveAndModerationStatusNew(Pageable pageable);
+    public Page<Post> findNew(Pageable pageable);
 
     public Page<Post> findByIsActiveAndModerationStatusAndModerator(byte isActive, ModerationStatus moderationStatus, User moderator, Pageable pageable);
 

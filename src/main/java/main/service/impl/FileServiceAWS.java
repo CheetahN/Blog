@@ -65,10 +65,9 @@ public class FileServiceAWS implements FileService {
     public String uploadAvatar(MultipartFile image) {
         File file = null;
         try {
-            file = File.createTempFile("blogAvatar", ".tmp");
+            file = File.createTempFile("blogAvatar", image.getOriginalFilename());
             image.transferTo(file);
-            cropAndResizeAvatar(file);
-            return uploadFile(file, image.getOriginalFilename());
+            return uploadFile(cropAndResizeAvatar(file), image.getOriginalFilename());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -88,12 +87,14 @@ public class FileServiceAWS implements FileService {
         return awsRoot + objKey;
     }
 
-    private void cropAndResizeAvatar(File avatar) throws IOException {
+    private File cropAndResizeAvatar(File avatar) throws IOException {
         BufferedImage image = ImageIO.read(avatar);
         int min = Math.min(image.getHeight(), image.getWidth());
         image = Scalr.crop(image, min, min);
         if (min > avatarSize)
             image = Scalr.resize(image, avatarSize, avatarSize);
-        ImageIO.write(image, avatar.getName().substring(avatar.getName().length() - 3), avatar);
+        File fileResized = File.createTempFile("blogAvatarR", ".tmp");
+        ImageIO.write(image, avatar.getName().substring(avatar.getName().length() - 3), fileResized);
+        return fileResized;
     }
 }

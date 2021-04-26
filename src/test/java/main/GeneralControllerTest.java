@@ -234,7 +234,7 @@ public class GeneralControllerTest {
                 .andReturn();
 
         String content = result.getResponse().getContentAsString();
-        assertTrue(content.matches("/upload/\\w{2}/\\w{2}/\\w{2}/test.png"));
+        assertTrue(content.matches(".*\\w{2}/\\w{2}/\\w{2}/test.png"));
     }
 
     @Test

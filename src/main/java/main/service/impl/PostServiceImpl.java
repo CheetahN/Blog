@@ -60,16 +60,16 @@ public class PostServiceImpl implements PostService {
         Pageable paging = getPage(offset, limit);
         Page<Post> posts;
         if ("recent".equals(mode)) {
-            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeDesc(paging);
+            posts = postRepository.findPostsSortByTimeDesc(paging);
 
         } else if ("early".equals(mode)) {
-            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByTimeAsc(paging);
+            posts = postRepository.findPostsSortByTimeAsc(paging);
 
         } else if ("popular".equals(mode)) {
-            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByComments(paging);
+            posts = postRepository.findPostsSortByComments(paging);
 
         } else {
-            posts = postRepository.findByIsActiveAndModerationStatusAndTimeBeforeAndSortByVotes(paging);
+            posts = postRepository.findPostsSortByVotes(paging);
         }
 
         return new PostListReponse(posts.getTotalElements(), getList(posts));
@@ -180,7 +180,7 @@ public class PostServiceImpl implements PostService {
 
         Page<Post> posts;
         if ("new".equals(status)) {
-            posts = postRepository.findByIsActiveAndModerationStatusNew(paging);
+            posts = postRepository.findNew(paging);
         } else
             posts = postRepository.findByIsActiveAndModerationStatusAndModerator((byte) 1, Enum.valueOf(ModerationStatus.class, status.toUpperCase()), currentUser, paging);
 

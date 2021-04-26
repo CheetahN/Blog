@@ -41,6 +41,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<GlobalException> handleTagNotFoundException(TagNotFoundException ex) {
         return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
+    @ExceptionHandler(RegistrationNotAllowedException.class)
+    protected ResponseEntity<GlobalException> handleRegistrationNotAllowedException(RegistrationNotAllowedException ex) {
+        return new ResponseEntity<>(new GlobalException(ex.getMessage()), HttpStatus.NOT_FOUND);
+    }
 
     @ExceptionHandler(UnauthorizedException.class)
     protected ResponseEntity<GlobalException> handleUnauthorizedException(UnauthorizedException ex) {
